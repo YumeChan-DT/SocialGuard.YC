@@ -1,4 +1,4 @@
-﻿using Discord.WebSocket;
+using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Transcom.SocialGuard.YC.Data.Config;
@@ -51,6 +51,7 @@ namespace Transcom.SocialGuard.YC
 		}
 
 		public override IServiceCollection ConfigureServices(IServiceCollection services) => services
-			.AddSingleton<ApiService>();
+			.AddSingleton<ApiService>()
+			.AddSingleton<EncryptionService>();
 	}
 }

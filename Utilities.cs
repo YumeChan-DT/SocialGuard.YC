@@ -5,8 +5,9 @@ using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-
-
+using Transcom.SocialGuard.YC.Services;
+using System.Security.Cryptography;
+using System;
 
 namespace Transcom.SocialGuard.YC
 {
@@ -24,6 +25,7 @@ namespace Transcom.SocialGuard.YC
 		public static IApiConfig PopulateApiConfig(this IApiConfig config)
 		{
 			config.ApiHost ??= "https://socialguard.natsecure.fr";
+			config.EncryptionKey ??= GenerateLocalMasterKey();
 
 			return config;
 		}
@@ -71,6 +73,17 @@ namespace Transcom.SocialGuard.YC
 			}
 
 			return config;
+		}
+
+
+		internal static string GenerateLocalMasterKey()
+		{
+			using RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create();
+
+			byte[] bytes = new byte[96];
+			randomNumberGenerator.GetBytes(bytes);
+			string localMasterKeyBase64 = Convert.ToBase64String(bytes);
+			return localMasterKeyBase64;
 		}
 	}
 }
