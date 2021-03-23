@@ -1,4 +1,4 @@
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
 using Transcom.SocialGuard.YC.Data.Models.Config;
 using Transcom.SocialGuard.YC.Data.Models;
@@ -22,7 +22,7 @@ namespace Transcom.SocialGuard.YC
 
 		public async Task OnGuildUserJoinedAsync(SocketGuildUser user)
 		{
-			GuildConfig config = await configRepository.FindByIdAsync(user.Guild.Id);
+			GuildConfig config = await configRepository.FindOrCreateConfigAsync(user.Guild.Id);
 
 			if (config.JoinLogChannel is not 0)
 			{
