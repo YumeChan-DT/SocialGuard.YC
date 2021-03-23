@@ -11,7 +11,7 @@
 		public string DisplayName { get; init; }
 	}
 
-	public enum EmitterType
+	public enum EmitterType : byte
 	{
 		Unknown = 0,
 		User = 1,
