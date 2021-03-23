@@ -26,7 +26,7 @@ namespace Transcom.SocialGuard.YC.Modules
 			this.authService = authService;
 		}
 
-		[Command("info")]
+		[Command("info"), Alias("")]
 		public async Task GetEmitterAsync()
 		{
 			GuildConfig config = await guildConfig.FindOrCreateConfigAsync(Context.Guild.Id);

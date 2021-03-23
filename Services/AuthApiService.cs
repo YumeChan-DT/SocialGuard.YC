@@ -35,8 +35,9 @@ namespace Transcom.SocialGuard.YC.Services
 		{
 			AuthCredentials login = (await guildConfigRepository.FindOrCreateConfigAsync(guildId)).ApiLogin 
 				?? throw new ApplicationException("Guild must first set API login (username/password).");
+			GuildConfig config = await guildConfigRepository.FindOrCreateConfigAsync(guildId);
 
-			if ((await guildConfigRepository.FindOrCreateConfigAsync(guildId)).Token is AuthToken token and not null && token.IsValid())
+			if (config.Token is AuthToken token and not null && token.IsValid())
 			{
 				return token;
 			}
@@ -55,7 +56,9 @@ namespace Transcom.SocialGuard.YC.Services
 				}
 				else
 				{
-					return (await response.Content.ReadFromJsonAsync<AuthResponse<AuthToken>>(Utilities.SerializerOptions)).Details;
+					token = (await response.Content.ReadFromJsonAsync<AuthResponse<AuthToken>>(Utilities.SerializerOptions)).Details;
+					await guildConfigRepository.ReplaceOneAsync(config with { Token = token });
+					return token;
 				}
 			}
 		}
@@ -69,7 +72,6 @@ namespace Transcom.SocialGuard.YC.Services
 			};
 
 			using HttpResponseMessage response = await httpClient.SendAsync(request);
-
 			return await response.Content.ReadFromJsonAsync<AuthResponse<IAuthComponent>>();
 		}
 	}
