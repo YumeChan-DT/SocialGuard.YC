@@ -1,29 +1,24 @@
-﻿using Transcom.SocialGuard.YC.Data.Config;
-using Transcom.SocialGuard.YC.Data.Models;
-using Nodsoft.YumeChan.PluginBase.Tools;
+﻿using Nodsoft.YumeChan.PluginBase.Tools;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-
-
+using Transcom.SocialGuard.YC.Data.Components;
+using Transcom.SocialGuard.YC.Data.Models;
+using Transcom.SocialGuard.YC.Data.Models.Config;
 
 namespace Transcom.SocialGuard.YC.Services
 {
-	public class ApiService
+	public class TrustlistUserApiService
 	{
 		private const string AccessKeyName = "Access-Key";
 		private const string JsonMimeType = "application/json";
 
 		private readonly HttpClient client;
-		private static readonly JsonSerializerOptions serializerOptions = new()
-		{
-			PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-		};
 
-		public ApiService(IHttpClientFactory factory, IConfigProvider<IApiConfig> config)
+		public TrustlistUserApiService(IHttpClientFactory factory, IConfigProvider<IApiConfig> config)
 		{
 			client = factory.CreateClient(nameof(PluginManifest));
 			client.BaseAddress = new(config.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig().ApiHost);
@@ -47,11 +42,11 @@ namespace Transcom.SocialGuard.YC.Services
 			return await Utilities.ParseResponseFullAsync<TrustlistUser>(response);
 		}
 
-		public async Task InsertOrEscalateUserAsync(TrustlistUser user, string accessKey)
+		public async Task InsertOrEscalateUserAsync(TrustlistUser user, AuthToken token)
 		{
 			using HttpRequestMessage request = new(await LookupUserAsync(user.Id) is null ? HttpMethod.Post : HttpMethod.Put, "/api/user/");
-			request.Content = new StringContent(JsonSerializer.Serialize(user, serializerOptions), Encoding.UTF8, JsonMimeType);
-			request.Headers.Add(AccessKeyName, accessKey);
+			request.Content = new StringContent(JsonSerializer.Serialize(user, Utilities.SerializerOptions), Encoding.UTF8, JsonMimeType);
+			request.Headers.Authorization = new("bearer", token.Token);
 
 			using HttpResponseMessage response = await client.SendAsync(request);
 

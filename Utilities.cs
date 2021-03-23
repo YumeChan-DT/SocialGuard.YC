@@ -1,20 +1,20 @@
 ﻿using Discord;
-using Transcom.SocialGuard.YC.Data.Config;
+using Transcom.SocialGuard.YC.Data.Models.Config;
 using Transcom.SocialGuard.YC.Data.Models;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-
-
+using System.Security.Cryptography;
+using System;
 
 namespace Transcom.SocialGuard.YC
 {
 	public static class Utilities
 	{
-		const string SignatureFooter = "Natsecure SocialGuard (YC) - Powered by Nodsoft Systems";
+		internal const string SignatureFooter = "Transcom SocialGuard (YC) - Powered by Nodsoft Systems";
 
-		private static JsonSerializerOptions SerializerOptions => new()
+		internal static JsonSerializerOptions SerializerOptions => new()
 		{
 			PropertyNamingPolicy = JsonNamingPolicy.CamelCase
 		};
@@ -24,6 +24,7 @@ namespace Transcom.SocialGuard.YC
 		public static IApiConfig PopulateApiConfig(this IApiConfig config)
 		{
 			config.ApiHost ??= "https://socialguard.natsecure.fr";
+			config.EncryptionKey ??= GenerateLocalMasterKey();
 
 			return config;
 		}
@@ -52,10 +53,11 @@ namespace Transcom.SocialGuard.YC
 
 			if (trustlistUser is not null)
 			{
-				builder.AddField("Escalation Level", $"{trustlistUser.EscalationLevel} - {name}");
-				builder.AddField("First Entered", trustlistUser.EntryAt.ToString(), true);
-				builder.AddField("Last Escalation", trustlistUser.LastEscalated.ToString(), true);
-				builder.AddField("Escalation Reason", trustlistUser.EscalationNote);
+				builder.AddField("Escalation Level", $"{trustlistUser.EscalationLevel} - {name}", true)
+					.AddField("Emitter", $"{trustlistUser.Emitter.DisplayName} (``{trustlistUser.Emitter.Login}``)")
+					.AddField("First Entered", trustlistUser.EntryAt.ToString(), true)
+					.AddField("Last Escalation", trustlistUser.LastEscalated.ToString(), true)
+					.AddField("Reason", trustlistUser.EscalationNote);
 			}
 
 			return builder.Build();
@@ -71,6 +73,17 @@ namespace Transcom.SocialGuard.YC
 			}
 
 			return config;
+		}
+
+
+		internal static string GenerateLocalMasterKey()
+		{
+			using RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create();
+
+			byte[] bytes = new byte[96];
+			randomNumberGenerator.GetBytes(bytes);
+			string localMasterKeyBase64 = Convert.ToBase64String(bytes);
+			return localMasterKeyBase64;
 		}
 	}
 }

@@ -1,10 +1,11 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
+using Transcom.SocialGuard.YC.Data.Components;
 
 
 
-namespace Transcom.SocialGuard.YC.Data.Config
+namespace Transcom.SocialGuard.YC.Data.Models.Config
 {
 	public record GuildConfig : IDocument<ulong>
 	{
@@ -18,5 +19,9 @@ namespace Transcom.SocialGuard.YC.Data.Config
 		public ulong BanLogChannel { get; set; }
 
 		public bool AutoBanBlacklisted { get; set; }
+
+		public AuthCredentials ApiLogin { get; set; }
+
+		public AuthToken Token { get; set; }
 	}
 }
