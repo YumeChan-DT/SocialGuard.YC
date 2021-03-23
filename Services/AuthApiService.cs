@@ -61,7 +61,7 @@ namespace Transcom.SocialGuard.YC.Services
 		}
 
 
-		public async Task RegisterNewUserAsync(AuthRegisterCredentials registerDetails)
+		public async Task<AuthResponse<IAuthComponent>> RegisterNewUserAsync(AuthRegisterCredentials registerDetails)
 		{
 			using HttpRequestMessage request = new(HttpMethod.Post, "/api/auth/register")
 			{
@@ -70,7 +70,7 @@ namespace Transcom.SocialGuard.YC.Services
 
 			using HttpResponseMessage response = await httpClient.SendAsync(request);
 
-			response.EnsureSuccessStatusCode();
+			return await response.Content.ReadFromJsonAsync<AuthResponse<IAuthComponent>>();
 		}
 	}
 }
