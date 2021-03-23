@@ -8,12 +8,12 @@ using Transcom.SocialGuard.YC.Services.Security;
 
 namespace Transcom.SocialGuard.YC.Modules
 {
-	[Group("sg cipher")]
-	public class CipherModule : ModuleBase<SocketCommandContext>
+	[Group("sg")]
+	public class EncryptionModule : ModuleBase<SocketCommandContext>
 	{
 		private readonly EncryptionService cipher;
 
-		public CipherModule(EncryptionService cipher)
+		public EncryptionModule(EncryptionService cipher)
 		{
 			this.cipher = cipher;
 		}

@@ -1,6 +1,6 @@
 using Discord;
 using Discord.Commands;
-using Transcom.SocialGuard.YC.Data.Config;
+using Transcom.SocialGuard.YC.Data.Models.Config;
 using Transcom.SocialGuard.YC.Data.Models;
 using Transcom.SocialGuard.YC.Services;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
@@ -13,12 +13,14 @@ namespace Transcom.SocialGuard.YC.Modules
 	[Group("socialguard"), Alias("sg")]
 	public class UserLookupModule : ModuleBase<ICommandContext>
 	{
-		private readonly ApiService service;
+		private readonly TrustlistUserApiService trustlist;
+		private readonly AuthApiService auth;
 		private readonly IEntityRepository<GuildConfig, ulong> repository;
 
-		public UserLookupModule(ApiService service, IDatabaseProvider<PluginManifest> databaseProvider)
+		public UserLookupModule(TrustlistUserApiService trustlist, AuthApiService auth, IDatabaseProvider<PluginManifest> databaseProvider)
 		{
-			this.service = service;
+			this.trustlist = trustlist;
+			this.auth = auth;
 			repository = databaseProvider.GetEntityRepository<GuildConfig, ulong>();
 		}
 
@@ -49,35 +51,38 @@ namespace Transcom.SocialGuard.YC.Modules
 				if (user?.Id == Context.User.Id)
 				{
 					await ReplyAsync($"{Context.User.Mention} You cannot insert yourself in the Trustlist.");
+					return;
 				}
 				else if (user.IsBot)
 				{
 					await ReplyAsync($"{Context.User.Mention} You cannot insert a Bot in the Trustlist.");
+					return;
 				}
 				else if (user.GuildPermissions.ManageGuild)
 				{
 					await ReplyAsync($"{Context.User.Mention} You cannot insert a server operator in the Trustlist. Demote them first.");
+					return;
 				}
 			}
-			else if (reason.Length < 5)
+
+			if (reason.Length < 5)
 			{
 				await ReplyAsync($"{Context.User.Mention} Reason is too short");
 			}
-
 			else
 			{
 				try
 				{
 					GuildConfig config = await repository.FindOrCreateConfigAsync(Context.Guild.Id);
 
-					if (config.WriteAccessKey is string key and not null)
+					if (config.ApiLogin is not null)
 					{
-						await service.InsertOrEscalateUserAsync(new()
+						await trustlist.InsertOrEscalateUserAsync(new()
 						{
 							Id = userId,
 							EscalationLevel = level,
 							EscalationNote = reason
-						}, key);
+						}, await auth.GetOrUpdateAuthTokenAsync(Context.Guild.Id));
 
 						await ReplyAsync($"{Context.User.Mention} User '{user?.Mention ?? userId.ToString()}' successfully inserted into Trustlist.");
 						await LookupAsync(user, userId);
@@ -90,7 +95,7 @@ namespace Transcom.SocialGuard.YC.Modules
 					}
 					else
 					{
-						await ReplyAsync($"{Context.User.Mention} No Access Key set. Use ``sg config accesskey <key>`` to set an Access Key.");
+						await ReplyAsync($"{Context.User.Mention} No API Credentials set. Use ``sg config accesskey <key>`` to set an Access Key.");
 					}
 				}
 				catch (ApplicationException e)
@@ -108,7 +113,7 @@ namespace Transcom.SocialGuard.YC.Modules
 
 		public async Task LookupAsync(IUser user, ulong userId, bool silenceOnClear = false)
 		{
-			TrustlistUser entry = await service.LookupUserAsync(userId);
+			TrustlistUser entry = await trustlist.LookupUserAsync(userId);
 
 			if (!silenceOnClear || entry.EscalationLevel is not 0)
 			{

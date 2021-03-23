@@ -1,8 +1,9 @@
 ﻿using Discord;
 using Discord.Commands;
-using Transcom.SocialGuard.YC.Data.Config;
+using Transcom.SocialGuard.YC.Data.Models.Config;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Threading.Tasks;
+using Transcom.SocialGuard.YC.Services.Security;
 
 namespace Transcom.SocialGuard.YC.Modules
 {
@@ -10,10 +11,12 @@ namespace Transcom.SocialGuard.YC.Modules
 	public class GuildConfigModule : ModuleBase<SocketCommandContext>
 	{
 		private readonly IEntityRepository<GuildConfig, ulong> repository;
+		private readonly EncryptionService encryption;
 
-		public GuildConfigModule(IDatabaseProvider<PluginManifest> database)
+		public GuildConfigModule(IDatabaseProvider<PluginManifest> database, EncryptionService encryption)
 		{
 			repository = database.GetEntityRepository<GuildConfig, ulong>();
+			this.encryption = encryption;
 		}
 
 
@@ -60,15 +63,15 @@ namespace Transcom.SocialGuard.YC.Modules
 		}
 
 
-		[Command("accesskey"), Priority(10), RequireUserPermission(GuildPermission.ManageGuild)]
-		public async Task ConfigureAccessKeyAsync(string key)
+		[Command("credentials"), Priority(10), RequireUserPermission(GuildPermission.ManageGuild)]
+		public async Task ConfigureAccessKeyAsync(string username, string password)
 		{
 			await Context.Message.DeleteAsync();
 
 			GuildConfig config = await repository.FindOrCreateConfigAsync(Context.Guild.Id);
-			config.WriteAccessKey = key;
+			config.ApiLogin = new(username, encryption.Encrypt(password));
 			await repository.ReplaceOneAsync(config);
-			await ReplyAsync($"Access key has been set.");
+			await ReplyAsync($"API credentials has been set.");
 		}
 
 		[Command("autobanblacklisted"), Alias("autoban"), RequireUserPermission(GuildPermission.ManageGuild), RequireBotPermission(GuildPermission.ManageGuild)]

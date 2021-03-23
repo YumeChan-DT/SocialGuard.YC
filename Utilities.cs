@@ -1,11 +1,10 @@
 ﻿using Discord;
-using Transcom.SocialGuard.YC.Data.Config;
+using Transcom.SocialGuard.YC.Data.Models.Config;
 using Transcom.SocialGuard.YC.Data.Models;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Transcom.SocialGuard.YC.Services;
 using System.Security.Cryptography;
 using System;
 
@@ -15,7 +14,7 @@ namespace Transcom.SocialGuard.YC
 	{
 		const string SignatureFooter = "Natsecure SocialGuard (YC) - Powered by Nodsoft Systems";
 
-		private static JsonSerializerOptions SerializerOptions => new()
+		internal static JsonSerializerOptions SerializerOptions => new()
 		{
 			PropertyNamingPolicy = JsonNamingPolicy.CamelCase
 		};

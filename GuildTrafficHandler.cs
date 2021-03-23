@@ -1,6 +1,6 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
-using Transcom.SocialGuard.YC.Data.Config;
+using Transcom.SocialGuard.YC.Data.Models.Config;
 using Transcom.SocialGuard.YC.Data.Models;
 using Transcom.SocialGuard.YC.Services;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
@@ -10,10 +10,10 @@ namespace Transcom.SocialGuard.YC
 {
 	public class GuildTrafficHandler
 	{
-		private readonly ApiService apiService;
+		private readonly TrustlistUserApiService apiService;
 		private readonly IEntityRepository<GuildConfig, ulong> configRepository;
 
-		public GuildTrafficHandler(ApiService api, IDatabaseProvider<PluginManifest> database)
+		public GuildTrafficHandler(TrustlistUserApiService api, IDatabaseProvider<PluginManifest> database)
 		{
 			apiService = api;
 			configRepository = database.GetEntityRepository<GuildConfig, ulong>();

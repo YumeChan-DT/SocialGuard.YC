@@ -1,12 +1,13 @@
-using Discord.WebSocket;
+﻿using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Transcom.SocialGuard.YC.Data.Config;
+using Transcom.SocialGuard.YC.Data.Models.Config;
 using Transcom.SocialGuard.YC.Services;
 using Nodsoft.YumeChan.PluginBase.Tools;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Transcom.SocialGuard.YC.Services.Security;
 
 
 
@@ -30,7 +31,7 @@ namespace Transcom.SocialGuard.YC
 			coreClient = client;
 			this.logger = logger;
 
-			ApiService apiService = new(httpClientFactory, apiConfig);
+			TrustlistUserApiService apiService = new(httpClientFactory, apiConfig);
 			GuildTrafficHandler = new(apiService, database);
 		}
 
@@ -51,7 +52,8 @@ namespace Transcom.SocialGuard.YC
 		}
 
 		public override IServiceCollection ConfigureServices(IServiceCollection services) => services
-			.AddSingleton<ApiService>()
+			.AddSingleton<TrustlistUserApiService>()
+			.AddSingleton<AuthApiService>()
 			.AddSingleton<EncryptionService>();
 	}
 }

@@ -3,9 +3,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using Transcom.SocialGuard.YC.Data.Config;
-
-
+using Transcom.SocialGuard.YC.Data.Models.Config;
 
 namespace Transcom.SocialGuard.YC.Services.Security
 {
