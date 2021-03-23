@@ -12,7 +12,7 @@ namespace Transcom.SocialGuard.YC
 {
 	public static class Utilities
 	{
-		const string SignatureFooter = "Natsecure SocialGuard (YC) - Powered by Nodsoft Systems";
+		internal const string SignatureFooter = "Transcom SocialGuard (YC) - Powered by Nodsoft Systems";
 
 		internal static JsonSerializerOptions SerializerOptions => new()
 		{
