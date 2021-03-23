@@ -8,7 +8,6 @@ namespace Transcom.SocialGuard.YC.Data.Models
 {
 	public record TrustlistUser : IDocument<ulong>
 	{
-		[Key]
 		public ulong Id { get; set; }
 
 		public DateTime EntryAt { get; set; }
@@ -20,5 +19,7 @@ namespace Transcom.SocialGuard.YC.Data.Models
 
 		[MinLength(5), MaxLength(2000)]
 		public string EscalationNote { get; set; }
+
+		public Emitter Emitter { get; set; }
 	}
 }

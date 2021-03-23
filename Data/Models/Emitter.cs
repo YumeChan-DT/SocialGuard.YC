@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Transcom.SocialGuard.YC.Data.Models
+﻿namespace Transcom.SocialGuard.YC.Data.Models
 {
 	public record Emitter
 	{
 		public string Login { get; init; }
+
 		public EmitterType EmitterType { get; init; }
+
 		public ulong Snowflake { get; init; }
+
 		public string DisplayName { get; init; }
 	}
 

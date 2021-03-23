@@ -53,10 +53,11 @@ namespace Transcom.SocialGuard.YC
 
 			if (trustlistUser is not null)
 			{
-				builder.AddField("Escalation Level", $"{trustlistUser.EscalationLevel} - {name}");
-				builder.AddField("First Entered", trustlistUser.EntryAt.ToString(), true);
-				builder.AddField("Last Escalation", trustlistUser.LastEscalated.ToString(), true);
-				builder.AddField("Escalation Reason", trustlistUser.EscalationNote);
+				builder.AddField("Escalation Level", $"{trustlistUser.EscalationLevel} - {name}", true)
+					.AddField("Emitter", $"{trustlistUser.Emitter.DisplayName} (``{trustlistUser.Emitter.Login}``)")
+					.AddField("First Entered", trustlistUser.EntryAt.ToString(), true)
+					.AddField("Last Escalation", trustlistUser.LastEscalated.ToString(), true)
+					.AddField("Reason", trustlistUser.EscalationNote);
 			}
 
 			return builder.Build();
