@@ -19,19 +19,19 @@ namespace Transcom.SocialGuard.YC.Modules
 		}
 
 
-		[Command("encrypt")]
+		[Command("encrypt"), RequireOwner]
 		public async Task EncryptAsync([Remainder] string value)
 		{
 			await ReplyAsync(cipher.Encrypt(value));
 		}
 
-		[Command("decrypt")]
+		[Command("decrypt"), RequireOwner]
 		public async Task DecryptAsync([Remainder] string value)
 		{
 			await ReplyAsync(cipher.Decrypt(value));
 		}
 #if DEBUG
-		[Command("key")]
+		[Command("key"), RequireOwner]
 		public async Task DecryptAsync()
 		{
 			await ReplyAsync(cipher.GetKey());

@@ -26,7 +26,7 @@ namespace Transcom.SocialGuard.YC.Modules
 			this.authService = authService;
 		}
 
-		[Command("info"), Alias("")]
+		[Command("info"), Alias(""), RequireUserPermission(GuildPermission.ManageGuild)]
 		public async Task GetEmitterAsync()
 		{
 			GuildConfig config = await guildConfig.FindOrCreateConfigAsync(Context.Guild.Id);
@@ -49,7 +49,7 @@ namespace Transcom.SocialGuard.YC.Modules
 			}
 		}
 
-		[Command("set server"), Alias("set")]
+		[Command("set server"), Alias("set"), RequireContext(ContextType.Guild), RequireUserPermission(GuildPermission.ManageGuild)]
 		public async Task SetServerEmitterAsync()
 		{
 			GuildConfig config = await guildConfig.FindOrCreateConfigAsync(Context.Guild.Id);

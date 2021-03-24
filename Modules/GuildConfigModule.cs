@@ -80,7 +80,7 @@ namespace Transcom.SocialGuard.YC.Modules
 			await ReplyAsync($"API credentials has been set.");
 		}
 
-		[Command("autobanblacklisted"), Alias("autoban"), RequireUserPermission(GuildPermission.ManageGuild), RequireBotPermission(GuildPermission.ManageGuild)]
+		[Command("autobanblacklisted"), Alias("autoban"), RequireUserPermission(GuildPermission.ManageGuild), RequireBotPermission(GuildPermission.BanMembers)]
 		public async Task ConfigureBanLogAsync()
 		{
 			GuildConfig config = await repository.FindOrCreateConfigAsync(Context.Guild.Id);
@@ -103,7 +103,7 @@ namespace Transcom.SocialGuard.YC.Modules
 			await ReplyAsync($"Auto-ban Blacklist has been turned {(config.AutoBanBlacklisted ? "on" : "off")}.");
 		}
 
-		[Command("register")]
+		[Command("register"), RequireUserPermission(GuildPermission.ManageGuild)]
 		public async Task RegisterAsync(string username, [EmailAddress] string email, string password)
 		{
 			await Context.Message.DeleteAsync();
