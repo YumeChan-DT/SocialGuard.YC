@@ -12,8 +12,6 @@ namespace Transcom.SocialGuard.YC.Data.Models.Config
 		[BsonId, BsonRepresentation(BsonType.Int64)]
 		public ulong Id { get; set; }
 
-		public string WriteAccessKey { get; set; }
-
 		public ulong JoinLogChannel { get; set; }
 
 		public ulong BanLogChannel { get; set; }

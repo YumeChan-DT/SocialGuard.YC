@@ -61,15 +61,7 @@ namespace Transcom.SocialGuard.YC.Modules
 			await ReplyAsync($"Join Ban channel set to : {Context.Guild.GetTextChannel(config.BanLogChannel).Mention}.");
 		}
 
-		[Command("accesskey"), RequireUserPermission(GuildPermission.ManageGuild)]
-		public async Task ConfigureAccessKeyAsync()
-		{
-			GuildConfig config = await repository.FindOrCreateConfigAsync(Context.Guild.Id);
-			await ReplyAsync(config.WriteAccessKey is null ? "No Access key has been set for this guild." : "Access Key has already been set.");
-		}
-
-
-		[Command("credentials"), Priority(10), RequireUserPermission(GuildPermission.ManageGuild)]
+		[Command("credentials"), Alias("login"), Priority(10), RequireUserPermission(GuildPermission.ManageGuild)]
 		public async Task ConfigureAccessKeyAsync(string username, string password)
 		{
 			await Context.Message.DeleteAsync();
