@@ -38,10 +38,9 @@ namespace Transcom.SocialGuard.YC.Services
 
 		public async Task SetEmitterAsync(Emitter emitter, AuthToken token)
 		{
-			using HttpRequestMessage request = new(HttpMethod.Post, "/api/emitter")
-			{
-				Content = JsonContent.Create(emitter)
-			};
+			using HttpRequestMessage request = new(HttpMethod.Post, "/api/emitter");
+			request.Content = JsonContent.Create(emitter);
+			request.Headers.Authorization = new("bearer", token.Token);
 
 			using HttpResponseMessage response = await httpClient.SendAsync(request);
 			response.EnsureSuccessStatusCode();
