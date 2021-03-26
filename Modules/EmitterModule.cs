@@ -6,11 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Transcom.SocialGuard.YC.Data.Models;
-using Transcom.SocialGuard.YC.Data.Models.Config;
-using Transcom.SocialGuard.YC.Services;
+using SocialGuard.YC.Data.Models;
+using SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Services;
 
-namespace Transcom.SocialGuard.YC.Modules
+namespace SocialGuard.YC.Modules
 {
 	[Group("sg emitter")]
 	public class EmitterModule : ModuleBase<SocketCommandContext>

@@ -1,21 +1,21 @@
 ﻿using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Transcom.SocialGuard.YC.Data.Models.Config;
-using Transcom.SocialGuard.YC.Services;
+using SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Services;
 using Nodsoft.YumeChan.PluginBase.Tools;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Transcom.SocialGuard.YC.Services.Security;
+using SocialGuard.YC.Services.Security;
 
 
 
-namespace Transcom.SocialGuard.YC
+namespace SocialGuard.YC
 {
 	public class PluginManifest : Nodsoft.YumeChan.PluginBase.Plugin
 	{
-		public override string PluginDisplayName => "Natsecure SocialGuard (YC)";
+		public override string PluginDisplayName => "NSYS SocialGuard (YC)";
 		public override bool PluginStealth => false;
 
 		internal const string ApiConfigFileName = "api";

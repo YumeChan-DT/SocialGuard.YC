@@ -1,11 +1,11 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
-using Transcom.SocialGuard.YC.Data.Components;
+using SocialGuard.YC.Data.Components;
 
 
 
-namespace Transcom.SocialGuard.YC.Data.Models.Config
+namespace SocialGuard.YC.Data.Models.Config
 {
 	public record GuildConfig : IDocument<ulong>
 	{

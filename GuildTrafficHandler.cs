@@ -1,12 +1,12 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Transcom.SocialGuard.YC.Data.Models.Config;
-using Transcom.SocialGuard.YC.Data.Models;
-using Transcom.SocialGuard.YC.Services;
+using SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Data.Models;
+using SocialGuard.YC.Services;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Threading.Tasks;
 
-namespace Transcom.SocialGuard.YC
+namespace SocialGuard.YC
 {
 	public class GuildTrafficHandler
 	{

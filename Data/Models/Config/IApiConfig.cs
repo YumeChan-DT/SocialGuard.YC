@@ -1,4 +1,4 @@
-﻿namespace Transcom.SocialGuard.YC.Data.Models.Config
+﻿namespace SocialGuard.YC.Data.Models.Config
 {
 	public interface IApiConfig
 	{

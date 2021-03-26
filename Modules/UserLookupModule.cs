@@ -1,14 +1,14 @@
 using Discord;
 using Discord.Commands;
-using Transcom.SocialGuard.YC.Data.Models.Config;
-using Transcom.SocialGuard.YC.Data.Models;
-using Transcom.SocialGuard.YC.Services;
+using SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Data.Models;
+using SocialGuard.YC.Services;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
-namespace Transcom.SocialGuard.YC.Modules
+namespace SocialGuard.YC.Modules
 {
 	[Group("socialguard"), Alias("sg")]
 	public class UserLookupModule : ModuleBase<ICommandContext>

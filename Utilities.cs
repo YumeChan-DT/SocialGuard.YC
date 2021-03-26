@@ -1,6 +1,6 @@
 ﻿using Discord;
-using Transcom.SocialGuard.YC.Data.Models.Config;
-using Transcom.SocialGuard.YC.Data.Models;
+using SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Data.Models;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Net.Http;
 using System.Text.Json;
@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System;
 
-namespace Transcom.SocialGuard.YC
+namespace SocialGuard.YC
 {
 	public static class Utilities
 	{
-		internal const string SignatureFooter = "Transcom SocialGuard (YC) - Powered by Nodsoft Systems";
+		internal const string SignatureFooter = "NSYS SocialGuard (YC) - https://socialguard.net/";
 
 		internal static JsonSerializerOptions SerializerOptions => new()
 		{

@@ -7,14 +7,14 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Transcom.SocialGuard.YC.Data.Components;
-using Transcom.SocialGuard.YC.Data.Models.Api;
-using Transcom.SocialGuard.YC.Data.Models.Config;
-using Transcom.SocialGuard.YC.Services.Security;
+using SocialGuard.YC.Data.Components;
+using SocialGuard.YC.Data.Models.Api;
+using SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Services.Security;
 
 
 
-namespace Transcom.SocialGuard.YC.Services
+namespace SocialGuard.YC.Services
 {
 	public class AuthApiService
 	{

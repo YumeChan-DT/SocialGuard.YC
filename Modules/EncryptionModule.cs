@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Transcom.SocialGuard.YC.Services.Security;
+using SocialGuard.YC.Services.Security;
 
-namespace Transcom.SocialGuard.YC.Modules
+namespace SocialGuard.YC.Modules
 {
 	[Group("sg")]
 	public class EncryptionModule : ModuleBase<SocketCommandContext>

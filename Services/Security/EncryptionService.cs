@@ -3,9 +3,9 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using Transcom.SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Data.Models.Config;
 
-namespace Transcom.SocialGuard.YC.Services.Security
+namespace SocialGuard.YC.Services.Security
 {
 	public class EncryptionService
 	{

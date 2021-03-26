@@ -1,15 +1,15 @@
 ﻿using Discord;
 using Discord.Commands;
-using Transcom.SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Data.Models.Config;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Threading.Tasks;
-using Transcom.SocialGuard.YC.Services.Security;
+using SocialGuard.YC.Services.Security;
 using System.ComponentModel.DataAnnotations;
-using Transcom.SocialGuard.YC.Data.Components;
-using Transcom.SocialGuard.YC.Services;
-using Transcom.SocialGuard.YC.Data.Models.Api;
+using SocialGuard.YC.Data.Components;
+using SocialGuard.YC.Services;
+using SocialGuard.YC.Data.Models.Api;
 
-namespace Transcom.SocialGuard.YC.Modules
+namespace SocialGuard.YC.Modules
 {
 	[Group("socialguard config"), Alias("sg config")]
 	public class GuildConfigModule : ModuleBase<SocketCommandContext>
