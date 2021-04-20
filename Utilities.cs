@@ -12,7 +12,7 @@ namespace SocialGuard.YC
 {
 	public static class Utilities
 	{
-		internal const string SignatureFooter = "NSYS SocialGuard (YC) - https://socialguard.net/";
+		internal static string SignatureFooter = $"NSYS SocialGuard (YC) v{PluginManifest.VersionString}";
 
 		internal static JsonSerializerOptions SerializerOptions => new()
 		{

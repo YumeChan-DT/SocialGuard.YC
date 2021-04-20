@@ -44,7 +44,7 @@ namespace SocialGuard.YC.Services
 
 		public async Task InsertOrEscalateUserAsync(TrustlistUser user, AuthToken token)
 		{
-			using HttpRequestMessage request = new(await LookupUserAsync(user.Id) is null ? HttpMethod.Post : HttpMethod.Put, "/api/user/");
+			using HttpRequestMessage request = new(await LookupUserAsync(user.Id) is null ? HttpMethod.Post : HttpMethod.Put, "/api/user");
 			request.Content = new StringContent(JsonSerializer.Serialize(user, Utilities.SerializerOptions), Encoding.UTF8, JsonMimeType);
 			request.Headers.Authorization = new("bearer", token.Token);
 

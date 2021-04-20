@@ -20,12 +20,15 @@ namespace SocialGuard.YC
 		
 		private readonly ILogger<PluginManifest> logger;
 		private readonly DiscordClient coreClient;
-		
+
+		internal static string VersionString { get; private set; }
+
 		public GuildTrafficHandler GuildTrafficHandler { get; }
 
 
 		public PluginManifest(DiscordClient client, ILogger<PluginManifest> logger, IConfigProvider<IApiConfig> apiConfig, IDatabaseProvider<PluginManifest> database, IHttpClientFactory httpClientFactory)
 		{
+			VersionString ??= PluginVersion;
 			coreClient = client;
 			this.logger = logger;
 
@@ -35,17 +38,19 @@ namespace SocialGuard.YC
 
 		public override async Task LoadPlugin() 
 		{
-//			coreClient.UserJoined += GuildTrafficHandler.OnGuildUserJoinedAsync;
+			coreClient.GuildMemberAdded += GuildTrafficHandler.OnMemberJoinedAsync;
 
 			await base.LoadPlugin();
 
-			logger.LogInformation("Loaded Plugin.");
+			logger.LogInformation("Loaded {0}.", PluginDisplayName);
 		}
+
 
 		public override async Task UnloadPlugin()
 		{
-//			coreClient.UserJoined -= GuildTrafficHandler.OnGuildUserJoinedAsync;
+			coreClient.GuildMemberAdded -= GuildTrafficHandler.OnMemberJoinedAsync;
 
+			logger.LogInformation("Unloaded {0}.", PluginDisplayName);
 			await base.UnloadPlugin();
 		}
 
