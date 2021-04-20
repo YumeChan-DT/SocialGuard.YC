@@ -1,5 +1,4 @@
-﻿using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
@@ -8,8 +7,7 @@ using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Net.Http;
 using System.Threading.Tasks;
 using SocialGuard.YC.Services.Security;
-
-
+using DSharpPlus;
 
 namespace SocialGuard.YC
 {
@@ -21,12 +19,12 @@ namespace SocialGuard.YC
 		internal const string ApiConfigFileName = "api";
 		
 		private readonly ILogger<PluginManifest> logger;
-		private readonly DiscordSocketClient coreClient;
+		private readonly DiscordClient coreClient;
 		
 		public GuildTrafficHandler GuildTrafficHandler { get; }
 
 
-		public PluginManifest(DiscordSocketClient client, ILogger<PluginManifest> logger, IConfigProvider<IApiConfig> apiConfig, IDatabaseProvider<PluginManifest> database, IHttpClientFactory httpClientFactory)
+		public PluginManifest(DiscordClient client, ILogger<PluginManifest> logger, IConfigProvider<IApiConfig> apiConfig, IDatabaseProvider<PluginManifest> database, IHttpClientFactory httpClientFactory)
 		{
 			coreClient = client;
 			this.logger = logger;
@@ -37,7 +35,7 @@ namespace SocialGuard.YC
 
 		public override async Task LoadPlugin() 
 		{
-			coreClient.UserJoined += GuildTrafficHandler.OnGuildUserJoinedAsync;
+//			coreClient.UserJoined += GuildTrafficHandler.OnGuildUserJoinedAsync;
 
 			await base.LoadPlugin();
 
@@ -46,7 +44,7 @@ namespace SocialGuard.YC
 
 		public override async Task UnloadPlugin()
 		{
-			coreClient.UserJoined -= GuildTrafficHandler.OnGuildUserJoinedAsync;
+//			coreClient.UserJoined -= GuildTrafficHandler.OnGuildUserJoinedAsync;
 
 			await base.UnloadPlugin();
 		}

@@ -1,108 +1,112 @@
-﻿using Discord;
-using Discord.Commands;
-using SocialGuard.YC.Data.Models.Config;
+﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
-using System.Threading.Tasks;
+using SocialGuard.YC.Data.Components;
+using SocialGuard.YC.Data.Models.Api;
+using SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Services;
 using SocialGuard.YC.Services.Security;
 using System.ComponentModel.DataAnnotations;
-using SocialGuard.YC.Data.Components;
-using SocialGuard.YC.Services;
-using SocialGuard.YC.Data.Models.Api;
+using System.Threading.Tasks;
 
 namespace SocialGuard.YC.Modules
 {
-	[Group("socialguard config"), Alias("sg config")]
-	public class GuildConfigModule : ModuleBase<SocketCommandContext>
+	public partial class BaseModule
 	{
-		private readonly IEntityRepository<GuildConfig, ulong> repository;
-		private readonly AuthApiService auth;
-		private readonly EncryptionService encryption;
-
-		public GuildConfigModule(IDatabaseProvider<PluginManifest> database, AuthApiService auth, EncryptionService encryption)
+		[Group("config")]
+		public class GuildConfigModule : BaseCommandModule
 		{
-			repository = database.GetEntityRepository<GuildConfig, ulong>();
-			this.auth = auth;
-			this.encryption = encryption;
-		}
+			private readonly IEntityRepository<GuildConfig, ulong> repository;
+			private readonly AuthApiService auth;
+			private readonly EncryptionService encryption;
 
-
-		[Command("joinlog"), RequireUserPermission(GuildPermission.ManageGuild)]
-		public async Task GetJoinLogAsync()
-		{
-			GuildConfig config = await repository.FindOrCreateConfigAsync(Context.Guild.Id);
-			ITextChannel current = Context.Guild.GetTextChannel(config.JoinLogChannel);
-			await ReplyAsync($"Current Join Log channel : {current?.Mention ?? "None"}.");
-		}
-
-		[Command("joinlog"), Priority(10), RequireUserPermission(GuildPermission.ManageGuild)]
-		public async Task SetJoinLogAsync(ITextChannel channel)
-		{
-			GuildConfig config = await repository.FindOrCreateConfigAsync(Context.Guild.Id);
-			config.JoinLogChannel = channel.Id;
-			await repository.ReplaceOneAsync(config);
-			await ReplyAsync($"Join Log channel set to : {Context.Guild.GetTextChannel(config.JoinLogChannel).Mention}.");
-		}
-
-
-		[Command("banlog"), RequireUserPermission(GuildPermission.ManageGuild)]
-		public async Task GetBanLogAsync()
-		{
-			GuildConfig config = await repository.FindOrCreateConfigAsync(Context.Guild.Id);
-			ITextChannel current = Context.Guild.GetTextChannel(config.BanLogChannel);
-			await ReplyAsync($"Current Ban Log channel : {current?.Mention ?? "None"}.");
-		}
-
-		[Command("banlog"), Priority(10), RequireUserPermission(GuildPermission.ManageGuild)]
-		public async Task SetBanLogAsync(ITextChannel channel)
-		{
-			GuildConfig config = await repository.FindOrCreateConfigAsync(Context.Guild.Id);
-			config.BanLogChannel = channel.Id;
-			await repository.ReplaceOneAsync(config);
-			await ReplyAsync($"Join Ban channel set to : {Context.Guild.GetTextChannel(config.BanLogChannel).Mention}.");
-		}
-
-		[Command("credentials"), Alias("login"), Priority(10), RequireUserPermission(GuildPermission.ManageGuild)]
-		public async Task ConfigureAccessKeyAsync(string username, string password)
-		{
-			await Context.Message.DeleteAsync();
-
-			GuildConfig config = await repository.FindOrCreateConfigAsync(Context.Guild.Id);
-			config.ApiLogin = new(username, encryption.Encrypt(password));
-			await repository.ReplaceOneAsync(config);
-			await ReplyAsync($"API credentials has been set.");
-		}
-
-		[Command("autobanblacklisted"), Alias("autoban"), RequireUserPermission(GuildPermission.ManageGuild), RequireBotPermission(GuildPermission.BanMembers)]
-		public async Task ConfigureBanLogAsync()
-		{
-			GuildConfig config = await repository.FindOrCreateConfigAsync(Context.Guild.Id);
-			await ReplyAsync($"Auto-ban Blacklist is {(config.AutoBanBlacklisted ? "on" : "off")}.");
-		}
-
-		[Command("autobanblacklisted"), Alias("autoban"), Priority(10), RequireUserPermission(GuildPermission.ManageGuild), RequireBotPermission(GuildPermission.ManageGuild)]
-		public async Task ConfigureBanLogAsync(string key)
-		{
-			GuildConfig config = await repository.FindOrCreateConfigAsync(Context.Guild.Id);
-
-			config.AutoBanBlacklisted = key.ToLowerInvariant() switch
+			public GuildConfigModule(IDatabaseProvider<PluginManifest> database, AuthApiService auth, EncryptionService encryption)
 			{
-				"true" or "yes" or "on" or "1" => true,
-				"false" or "no" or "off" or "0" => false,
-				_ => config.AutoBanBlacklisted
-			};
+				repository = database.GetEntityRepository<GuildConfig, ulong>();
+				this.auth = auth;
+				this.encryption = encryption;
+			}
 
-			await repository.ReplaceOneAsync(config);
-			await ReplyAsync($"Auto-ban Blacklist has been turned {(config.AutoBanBlacklisted ? "on" : "off")}.");
-		}
 
-		[Command("register"), RequireUserPermission(GuildPermission.ManageGuild)]
-		public async Task RegisterAsync(string username, [EmailAddress] string email, string password)
-		{
-			await Context.Message.DeleteAsync();
-			AuthRegisterCredentials credentials = new(username, email, password);
-			AuthResponse<IAuthComponent> result = await auth.RegisterNewUserAsync(credentials);
+			[Command("joinlog"), RequireUserPermissions(Permissions.ManageGuild)]
+			public async Task JoinLogAsync(CommandContext context)
+			{
+				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
+				DiscordChannel current = context.Guild.GetChannel(config.JoinLogChannel);
+				await context.RespondAsync($"Current Join Log channel : {current?.Mention ?? "None"}.");
+			}
+			[Command]
+			public async Task JoinLogAsync(CommandContext context, DiscordChannel channel)
+			{
+				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
+				config.JoinLogChannel = channel.Id;
+				await repository.ReplaceOneAsync(config);
+				await context.RespondAsync($"Join Log channel set to : {context.Guild.GetChannel(config.JoinLogChannel).Mention}.");
+			}
 
-			await ReplyAsync($"{Context.User.Mention} {result.Status} : {result.Message}\n(Usage: ``sg config register <username> <email> <password>``)");
+
+			[Command("banlog"), RequireUserPermissions(Permissions.ManageGuild)]
+			public async Task BanLogAsync(CommandContext context)
+			{
+				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
+				DiscordChannel current = context.Guild.GetChannel(config.BanLogChannel);
+				await context.RespondAsync($"Current Ban Log channel : {current?.Mention ?? "None"}.");
+			}
+			[Command]
+			public async Task BanLogAsync(CommandContext context, DiscordChannel channel)
+			{
+				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
+				config.BanLogChannel = channel.Id;
+				await repository.ReplaceOneAsync(config);
+				await context.RespondAsync($"Join Ban channel set to : {context.Guild.GetChannel(config.BanLogChannel).Mention}.");
+			}
+
+
+			[Command("credentials"), Aliases("login"), Priority(10), RequireUserPermissions(Permissions.ManageGuild)]
+			public async Task ConfigureAccessKeyAsync(CommandContext context, string username, string password)
+			{
+				await context.Message.DeleteAsync();
+
+				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
+				config.ApiLogin = new(username, encryption.Encrypt(password));
+				await repository.ReplaceOneAsync(config);
+				await context.RespondAsync($"API credentials has been set.");
+			}
+
+			[Command("set-autoban"), Aliases("autoban"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.BanMembers)]
+			public async Task ConfigureAutobanAsync(CommandContext context)
+			{
+				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
+				await context.RespondAsync($"Auto-ban Blacklist is **{(config.AutoBanBlacklisted ? "on" : "off")}**.");
+			}
+			[Command]
+			public async Task ConfigureAutobanAsync(CommandContext context, string key)
+			{
+				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
+
+				config.AutoBanBlacklisted = key.ToLowerInvariant() switch
+				{
+					"true" or "yes" or "on" or "1" => true,
+					"false" or "no" or "off" or "0" => false,
+					_ => config.AutoBanBlacklisted
+				};
+
+				await repository.ReplaceOneAsync(config);
+				await context.RespondAsync($"Auto-ban Blacklist has been turned **{(config.AutoBanBlacklisted ? "on" : "off")}**.");
+			}
+
+
+			[Command("register"), RequireUserPermissions(Permissions.ManageGuild)]
+			public async Task RegisterAsync(CommandContext context, string username, [EmailAddress] string email, string password)
+			{
+				await context.Message.DeleteAsync();
+				AuthRegisterCredentials credentials = new(username, email, password);
+				AuthResponse<IAuthComponent> result = await auth.RegisterNewUserAsync(credentials);
+
+				await context.RespondAsync($"{context.User.Mention} {result.Status} : {result.Message}\n");
+			}
 		}
 	}
 }

@@ -1,10 +1,11 @@
-﻿using Discord;
-using Discord.WebSocket;
-using SocialGuard.YC.Data.Models.Config;
+﻿using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Data.Models;
 using SocialGuard.YC.Services;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Threading.Tasks;
+using DSharpPlus.Entities;
+
+
 
 namespace SocialGuard.YC
 {
@@ -20,15 +21,15 @@ namespace SocialGuard.YC
 		}
 
 
-		public async Task OnGuildUserJoinedAsync(SocketGuildUser user)
+		public async Task OnMemberJoinedAsync(DiscordMember user)
 		{
 			GuildConfig config = await configRepository.FindOrCreateConfigAsync(user.Guild.Id);
 
 			if (config.JoinLogChannel is not 0)
 			{
 				TrustlistUser entry = await apiService.LookupUserAsync(user.Id);
-				ITextChannel joinLog = user.Guild.GetTextChannel(config.JoinLogChannel);
-				Embed entryEmbed = Utilities.BuildUserRecordEmbed(entry, user, user.Id);
+				DiscordChannel joinLog = user.Guild.GetChannel(config.JoinLogChannel);
+				DiscordEmbed entryEmbed = Utilities.BuildUserRecordEmbed(entry, user, user.Id);
 
 
 				await joinLog.SendMessageAsync($"User **{user}** ({user.Mention}) has joined the server.", embed: entryEmbed);
@@ -37,7 +38,7 @@ namespace SocialGuard.YC
 				{				
 					await user.BanAsync(0, $"[SocialGuard] \n{entry.EscalationNote}");
 
-					await user.Guild.GetTextChannel(config.BanLogChannel is not 0 ? config.BanLogChannel : config.JoinLogChannel)
+					await user.Guild.GetChannel(config.BanLogChannel is not 0 ? config.BanLogChannel : config.JoinLogChannel)
 						.SendMessageAsync($"User **{user}** ({user.Mention}) banned on server join.", embed: entryEmbed);
 				}
 			}
