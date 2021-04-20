@@ -3,11 +3,11 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using Transcom.SocialGuard.YC.Data.Components;
-using Transcom.SocialGuard.YC.Data.Models;
-using Transcom.SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Data.Components;
+using SocialGuard.YC.Data.Models;
+using SocialGuard.YC.Data.Models.Config;
 
-namespace Transcom.SocialGuard.YC.Services
+namespace SocialGuard.YC.Services
 {
 	public class EmitterApiService
 	{

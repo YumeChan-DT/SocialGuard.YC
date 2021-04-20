@@ -1,91 +1,92 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using SocialGuard.YC.Data.Models;
+using SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Services;
 using System.Threading.Tasks;
-using Transcom.SocialGuard.YC.Data.Models;
-using Transcom.SocialGuard.YC.Data.Models.Config;
-using Transcom.SocialGuard.YC.Services;
 
-namespace Transcom.SocialGuard.YC.Modules
+namespace SocialGuard.YC.Modules
 {
-	[Group("sg emitter")]
-	public class EmitterModule : ModuleBase<SocketCommandContext>
+	public partial class BaseModule
 	{
-		private readonly IEntityRepository<GuildConfig, ulong> guildConfig;
-		private readonly EmitterApiService emitterService;
-		private readonly AuthApiService authService;
-
-		public EmitterModule(EmitterApiService emitterService, AuthApiService authService, IDatabaseProvider<PluginManifest> database)
+		[Group("emitter")]
+		public class EmitterModule : BaseCommandModule
 		{
-			guildConfig = database.GetEntityRepository<GuildConfig, ulong>();
-			this.emitterService = emitterService;
-			this.authService = authService;
+			private readonly IEntityRepository<GuildConfig, ulong> guildConfig;
+			private readonly EmitterApiService emitterService;
+			private readonly AuthApiService authService;
+
+			public EmitterModule(EmitterApiService emitterService, AuthApiService authService, IDatabaseProvider<PluginManifest> database)
+			{
+				guildConfig = database.GetEntityRepository<GuildConfig, ulong>();
+				this.emitterService = emitterService;
+				this.authService = authService;
+			}
+
+			[Command("info"), RequireUserPermissions(Permissions.ManageGuild)]
+			public async Task GetEmitterAsync(CommandContext context)
+			{
+				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
+
+				if (config.ApiLogin is null)
+				{
+					await context.RespondAsync("Please set API Credentials first.");
+					return;
+				}
+
+				Emitter emitter = await emitterService.GetEmitterAsync(await authService.GetOrUpdateAuthTokenAsync(context.Guild.Id));
+
+				if (emitter is null)
+				{
+					await context.RespondAsync("No Emitter set for provided credentials.");
+				}
+				else
+				{
+					await context.RespondAsync(embed: BuildEmitterEmbed(emitter));
+				}
+			}
+
+			[Command("set-server"), Aliases("set"), RequireGuild, RequireUserPermissions(Permissions.ManageGuild)]
+			public async Task SetServerEmitterAsync(CommandContext context)
+			{
+				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
+
+				if (config.ApiLogin is null)
+				{
+					await context.RespondAsync("Please set API Credentials first.");
+					return;
+				}
+
+				await emitterService.SetEmitterAsync(new()
+				{
+					DisplayName = context.Guild.Name,
+					EmitterType = EmitterType.Server,
+					Snowflake = context.Guild.Id
+				}, await authService.GetOrUpdateAuthTokenAsync(context.Guild.Id));
+
+				await context.RespondAsync(
+					"Emitter successfully set :",
+					embed: BuildEmitterEmbed(await emitterService.GetEmitterAsync(await authService.GetOrUpdateAuthTokenAsync(context.Guild.Id))));
+			}
+
+			public static DiscordEmbed BuildEmitterEmbed(Emitter emitter) => new DiscordEmbedBuilder()
+						.WithTitle("Emitter Info")
+						.WithDescription(emitter.DisplayName)
+						.AddField("Username", emitter.Login)
+						.AddField("Type", EmitterTypeToString(emitter.EmitterType), true)
+						.AddField("Discord ID", emitter.Snowflake is 0 ? "N/A" : emitter.Snowflake.ToString(), true)
+						.WithFooter(Utilities.SignatureFooter)
+						.Build();
+
+			public static string EmitterTypeToString(EmitterType type) => type switch
+			{
+				EmitterType.User => "User",
+				EmitterType.Server => "Server",
+				_ => "Unknown"
+			};
 		}
-
-		[Command("info"), Alias(""), RequireUserPermission(GuildPermission.ManageGuild)]
-		public async Task GetEmitterAsync()
-		{
-			GuildConfig config = await guildConfig.FindOrCreateConfigAsync(Context.Guild.Id);
-
-			if (config.ApiLogin is null)
-			{
-				await ReplyAsync("Please set API Credentials first.");
-				return;
-			}
-
-			Emitter emitter = await emitterService.GetEmitterAsync(await authService.GetOrUpdateAuthTokenAsync(Context.Guild.Id));
-
-			if (emitter is null)
-			{
-				await ReplyAsync("No Emitter set for provided credentials.");
-			}
-			else
-			{
-				await ReplyAsync(embed: BuildEmitterEmbed(emitter));
-			}
-		}
-
-		[Command("set server"), Alias("set"), RequireContext(ContextType.Guild), RequireUserPermission(GuildPermission.ManageGuild)]
-		public async Task SetServerEmitterAsync()
-		{
-			GuildConfig config = await guildConfig.FindOrCreateConfigAsync(Context.Guild.Id);
-
-			if (config.ApiLogin is null)
-			{
-				await ReplyAsync("Please set API Credentials first.");
-				return;
-			}
-
-			await emitterService.SetEmitterAsync(new()
-			{
-				DisplayName = Context.Guild.Name,
-				EmitterType = EmitterType.Server,
-				Snowflake = Context.Guild.Id
-			}, await authService.GetOrUpdateAuthTokenAsync(Context.Guild.Id));
-
-			await ReplyAsync(
-				"Emitter successfully set :", 
-				embed: BuildEmitterEmbed(await emitterService.GetEmitterAsync(await authService.GetOrUpdateAuthTokenAsync(Context.Guild.Id))));
-		}
-
-		public static Embed BuildEmitterEmbed(Emitter emitter) => new EmbedBuilder()
-					.WithTitle("Emitter Info")
-					.WithDescription(emitter.DisplayName)
-					.AddField("Username", emitter.Login)
-					.AddField("Type", EmitterTypeToString(emitter.EmitterType), true)
-					.AddField("Discord ID", emitter.Snowflake is 0 ? "N/A" : emitter.Snowflake, true)
-					.WithFooter(Utilities.SignatureFooter)
-					.Build();
-
-		public static string EmitterTypeToString(EmitterType type) => type switch
-		{
-			EmitterType.User => "User",
-			EmitterType.Server => "Server",
-			_ => "Unknown"
-		};
 	}
 }

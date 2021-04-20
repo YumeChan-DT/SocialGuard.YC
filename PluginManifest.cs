@@ -1,33 +1,34 @@
-﻿using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Transcom.SocialGuard.YC.Data.Models.Config;
-using Transcom.SocialGuard.YC.Services;
+using SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Services;
 using Nodsoft.YumeChan.PluginBase.Tools;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Transcom.SocialGuard.YC.Services.Security;
+using SocialGuard.YC.Services.Security;
+using DSharpPlus;
 
-
-
-namespace Transcom.SocialGuard.YC
+namespace SocialGuard.YC
 {
 	public class PluginManifest : Nodsoft.YumeChan.PluginBase.Plugin
 	{
-		public override string PluginDisplayName => "Natsecure SocialGuard (YC)";
+		public override string PluginDisplayName => "NSYS SocialGuard (YC)";
 		public override bool PluginStealth => false;
 
 		internal const string ApiConfigFileName = "api";
 		
 		private readonly ILogger<PluginManifest> logger;
-		private readonly DiscordSocketClient coreClient;
-		
+		private readonly DiscordClient coreClient;
+
+		internal static string VersionString { get; private set; }
+
 		public GuildTrafficHandler GuildTrafficHandler { get; }
 
 
-		public PluginManifest(DiscordSocketClient client, ILogger<PluginManifest> logger, IConfigProvider<IApiConfig> apiConfig, IDatabaseProvider<PluginManifest> database, IHttpClientFactory httpClientFactory)
+		public PluginManifest(DiscordClient client, ILogger<PluginManifest> logger, IConfigProvider<IApiConfig> apiConfig, IDatabaseProvider<PluginManifest> database, IHttpClientFactory httpClientFactory)
 		{
+			VersionString ??= PluginVersion;
 			coreClient = client;
 			this.logger = logger;
 
@@ -37,17 +38,19 @@ namespace Transcom.SocialGuard.YC
 
 		public override async Task LoadPlugin() 
 		{
-			coreClient.UserJoined += GuildTrafficHandler.OnGuildUserJoinedAsync;
+			coreClient.GuildMemberAdded += GuildTrafficHandler.OnMemberJoinedAsync;
 
 			await base.LoadPlugin();
 
-			logger.LogInformation("Loaded Plugin.");
+			logger.LogInformation("Loaded {0}.", PluginDisplayName);
 		}
+
 
 		public override async Task UnloadPlugin()
 		{
-			coreClient.UserJoined -= GuildTrafficHandler.OnGuildUserJoinedAsync;
+			coreClient.GuildMemberAdded -= GuildTrafficHandler.OnMemberJoinedAsync;
 
+			logger.LogInformation("Unloaded {0}.", PluginDisplayName);
 			await base.UnloadPlugin();
 		}
 

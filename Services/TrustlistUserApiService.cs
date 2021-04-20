@@ -5,11 +5,11 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Transcom.SocialGuard.YC.Data.Components;
-using Transcom.SocialGuard.YC.Data.Models;
-using Transcom.SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Data.Components;
+using SocialGuard.YC.Data.Models;
+using SocialGuard.YC.Data.Models.Config;
 
-namespace Transcom.SocialGuard.YC.Services
+namespace SocialGuard.YC.Services
 {
 	public class TrustlistUserApiService
 	{
@@ -44,7 +44,7 @@ namespace Transcom.SocialGuard.YC.Services
 
 		public async Task InsertOrEscalateUserAsync(TrustlistUser user, AuthToken token)
 		{
-			using HttpRequestMessage request = new(await LookupUserAsync(user.Id) is null ? HttpMethod.Post : HttpMethod.Put, "/api/user/");
+			using HttpRequestMessage request = new(await LookupUserAsync(user.Id) is null ? HttpMethod.Post : HttpMethod.Put, "/api/user");
 			request.Content = new StringContent(JsonSerializer.Serialize(user, Utilities.SerializerOptions), Encoding.UTF8, JsonMimeType);
 			request.Headers.Authorization = new("bearer", token.Token);
 

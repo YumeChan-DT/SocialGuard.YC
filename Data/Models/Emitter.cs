@@ -1,4 +1,4 @@
-﻿namespace Transcom.SocialGuard.YC.Data.Models
+﻿namespace SocialGuard.YC.Data.Models
 {
 	public record Emitter
 	{

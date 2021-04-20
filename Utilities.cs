@@ -1,18 +1,18 @@
-﻿using Discord;
-using Transcom.SocialGuard.YC.Data.Models.Config;
-using Transcom.SocialGuard.YC.Data.Models;
+﻿using SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Data.Models;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System;
+using DSharpPlus.Entities;
 
-namespace Transcom.SocialGuard.YC
+namespace SocialGuard.YC
 {
 	public static class Utilities
 	{
-		internal const string SignatureFooter = "Transcom SocialGuard (YC) - Powered by Nodsoft Systems";
+		internal static string SignatureFooter = $"NSYS SocialGuard (YC) v{PluginManifest.VersionString}";
 
 		internal static JsonSerializerOptions SerializerOptions => new()
 		{
@@ -23,23 +23,23 @@ namespace Transcom.SocialGuard.YC
 	
 		public static IApiConfig PopulateApiConfig(this IApiConfig config)
 		{
-			config.ApiHost ??= "https://socialguard.natsecure.fr";
+			config.ApiHost ??= "https://socialguard.net";
 			config.EncryptionKey ??= GenerateLocalMasterKey();
 
 			return config;
 		}
 
-		public static Embed BuildUserRecordEmbed(TrustlistUser trustlistUser, IUser discordUser, ulong userId)
+		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser, ulong userId)
 		{
-			(Color color, string name, string desc) = trustlistUser?.EscalationLevel switch
+			(DiscordColor color, string name, string desc) = trustlistUser?.EscalationLevel switch
 			{
-				null or 0 => (Color.Green, "Clear", "This user has no record, and is cleared safe."),
-				1 => (Color.Blue, "Suspicious", "This user is marked as suspicious. Their behaviour should be monitored."),
-				2 => (Color.Orange, "Untrusted", "This user is marked as untrusted. Please exerce caution when interacting with them."),
-				>= 3 => (Color.Red, "Blacklisted", "This user is dangerous and has been blacklisted. Banning this user is greatly advised.")
+				null or 0 => (DiscordColor.Green, "Clear", "This user has no record, and is cleared safe."),
+				1 => (DiscordColor.Blue, "Suspicious", "This user is marked as suspicious. Their behaviour should be monitored."),
+				2 => (DiscordColor.Orange, "Untrusted", "This user is marked as untrusted. Please exerce caution when interacting with them."),
+				>= 3 => (DiscordColor.Red, "Blacklisted", "This user is dangerous and has been blacklisted. Banning this user is greatly advised.")
 			};
 
-			EmbedBuilder builder = new();
+			DiscordEmbedBuilder builder = new();
 			builder.WithTitle($"Trustlist User : {discordUser?.Username ?? userId.ToString()}");
 
 			if (discordUser is not null)

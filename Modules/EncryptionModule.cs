@@ -1,41 +1,42 @@
-﻿using Discord.Commands;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Transcom.SocialGuard.YC.Services.Security;
+﻿using System.Threading.Tasks;
+using SocialGuard.YC.Services.Security;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.CommandsNext;
 
-namespace Transcom.SocialGuard.YC.Modules
+
+
+namespace SocialGuard.YC.Modules
 {
-	[Group("sg")]
-	public class EncryptionModule : ModuleBase<SocketCommandContext>
+	public partial class BaseModule
 	{
-		private readonly EncryptionService cipher;
-
-		public EncryptionModule(EncryptionService cipher)
+		public class EncryptionModule : BaseCommandModule
 		{
-			this.cipher = cipher;
-		}
+			private readonly EncryptionService cipher;
+
+			public EncryptionModule(EncryptionService cipher)
+			{
+				this.cipher = cipher;
+			}
 
 
-		[Command("encrypt"), RequireOwner]
-		public async Task EncryptAsync([Remainder] string value)
-		{
-			await ReplyAsync(cipher.Encrypt(value));
-		}
+			[Command("encrypt"), RequireOwner]
+			public async Task EncryptAsync(CommandContext context, [RemainingText] string value)
+			{
+				await context.RespondAsync(cipher.Encrypt(value));
+			}
 
-		[Command("decrypt"), RequireOwner]
-		public async Task DecryptAsync([Remainder] string value)
-		{
-			await ReplyAsync(cipher.Decrypt(value));
-		}
+			[Command("decrypt"), RequireOwner]
+			public async Task DecryptAsync(CommandContext context, [RemainingText] string value)
+			{
+				await context.RespondAsync(cipher.Decrypt(value));
+			}
 #if DEBUG
-		[Command("key"), RequireOwner]
-		public async Task DecryptAsync()
-		{
-			await ReplyAsync(cipher.GetKey());
-		}
+			[Command("key"), RequireOwner]
+			public async Task DecryptAsync(CommandContext context)
+			{
+				await context.RespondAsync(cipher.GetKey());
+			}
 #endif
+		}
 	}
 }

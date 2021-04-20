@@ -1,12 +1,13 @@
-﻿using Discord;
-using Discord.WebSocket;
-using Transcom.SocialGuard.YC.Data.Models.Config;
-using Transcom.SocialGuard.YC.Data.Models;
-using Transcom.SocialGuard.YC.Services;
+﻿using SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Data.Models;
+using SocialGuard.YC.Services;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Threading.Tasks;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using DSharpPlus;
 
-namespace Transcom.SocialGuard.YC
+namespace SocialGuard.YC
 {
 	public class GuildTrafficHandler
 	{
@@ -20,25 +21,25 @@ namespace Transcom.SocialGuard.YC
 		}
 
 
-		public async Task OnGuildUserJoinedAsync(SocketGuildUser user)
+		public async Task OnMemberJoinedAsync(DiscordClient _, GuildMemberAddEventArgs e)
 		{
-			GuildConfig config = await configRepository.FindOrCreateConfigAsync(user.Guild.Id);
+			GuildConfig config = await configRepository.FindOrCreateConfigAsync(e.Member.Guild.Id);
 
 			if (config.JoinLogChannel is not 0)
 			{
-				TrustlistUser entry = await apiService.LookupUserAsync(user.Id);
-				ITextChannel joinLog = user.Guild.GetTextChannel(config.JoinLogChannel);
-				Embed entryEmbed = Utilities.BuildUserRecordEmbed(entry, user, user.Id);
+				TrustlistUser entry = await apiService.LookupUserAsync(e.Member.Id);
+				DiscordChannel joinLog = e.Guild.GetChannel(config.JoinLogChannel);
+				DiscordEmbed entryEmbed = Utilities.BuildUserRecordEmbed(entry, e.Member, e.Member.Id);
 
 
-				await joinLog.SendMessageAsync($"User **{user}** ({user.Mention}) has joined the server.", embed: entryEmbed);
+				await joinLog.SendMessageAsync($"User **{e.Member}** ({e.Member.Mention}) has joined the server.", entryEmbed);
 
 				if (entry?.EscalationLevel >= 3 && config.AutoBanBlacklisted)
 				{				
-					await user.BanAsync(0, $"[SocialGuard] \n{entry.EscalationNote}");
+					await e.Member.BanAsync(0, $"[SocialGuard] \n{entry.EscalationNote}");
 
-					await user.Guild.GetTextChannel(config.BanLogChannel is not 0 ? config.BanLogChannel : config.JoinLogChannel)
-						.SendMessageAsync($"User **{user}** ({user.Mention}) banned on server join.", embed: entryEmbed);
+					await e.Guild.GetChannel(config.BanLogChannel is not 0 ? config.BanLogChannel : config.JoinLogChannel)
+						.SendMessageAsync($"User **{e.Member}** ({e.Member.Mention}) banned on server join.", entryEmbed);
 				}
 			}
 		}
