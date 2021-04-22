@@ -80,6 +80,9 @@ To request verification, you can contact SocialGuard Maintainer **Sakura Isayeki
 
 ## Basics
 
+*Starting from Release 2.0.0 onwards, all commands are listed under `==help socialguard`. This help will always provide runtime-exact syntax documentation, and is considered first source of truth for syntax checks.  
+With this being said, this README file will provide additional context to commands, which may be missing in the help command.*
+
 ``==sg lookup <User/ID>`` Returns trustlist result for given user
 
 
@@ -109,4 +112,4 @@ To request verification, you can contact SocialGuard Maintainer **Sakura Isayeki
 **All Emitter commands require prior authentication with SocialGuard credentials. Be sure to set them up in config before using these commands.**
 
 ``==sg emitter info`` Displays Emitter information for your current credentials.  
-``==sg emitter set server`` Automatically sets Emitter info for your server. *(Please refresh your Emitter info after a server name change, using this command.)*  
+``==sg emitter set-server`` Automatically sets Emitter info for your server. *(Please refresh your Emitter info after a server name change, using this command.)*  
