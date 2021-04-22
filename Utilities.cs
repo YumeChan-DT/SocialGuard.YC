@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System;
 using DSharpPlus.Entities;
+using DSharpPlus;
 
 namespace SocialGuard.YC
 {
@@ -29,7 +30,7 @@ namespace SocialGuard.YC
 			return config;
 		}
 
-		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser, ulong userId)
+		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser)
 		{
 			(DiscordColor color, string name, string desc) = trustlistUser?.EscalationLevel switch
 			{
@@ -40,12 +41,8 @@ namespace SocialGuard.YC
 			};
 
 			DiscordEmbedBuilder builder = new();
-			builder.WithTitle($"Trustlist User : {discordUser?.Username ?? userId.ToString()}");
-
-			if (discordUser is not null)
-			{
-				builder.AddField("ID", $"``{discordUser?.Id}``", true);
-			}
+			builder.WithTitle($"Trustlist User : {discordUser?.Username}");
+			builder.AddField("ID", $"`{discordUser?.Id}`", true);
 
 			builder.Color = color;
 			builder.Description = desc;
@@ -54,7 +51,7 @@ namespace SocialGuard.YC
 			if (trustlistUser is not null)
 			{
 				builder.AddField("Escalation Level", $"{trustlistUser.EscalationLevel} - {name}", true)
-					.AddField("Emitter", $"{trustlistUser.Emitter.DisplayName} (``{trustlistUser.Emitter.Login}``)")
+					.AddField("Emitter", $"{trustlistUser.Emitter.DisplayName} (`{trustlistUser.Emitter.Login}`)")
 					.AddField("First Entered", trustlistUser.EntryAt.ToString(), true)
 					.AddField("Last Escalation", trustlistUser.LastEscalated.ToString(), true)
 					.AddField("Reason", trustlistUser.EscalationNote);
@@ -85,5 +82,12 @@ namespace SocialGuard.YC
 			string localMasterKeyBase64 = Convert.ToBase64String(bytes);
 			return localMasterKeyBase64;
 		}
+
+		public static DiscordEmbedBuilder WithAuthor(this DiscordEmbedBuilder embed, DiscordUser user)
+		{
+			return embed.WithAuthor(user.GetFullUsername(), null, user.GetAvatarUrl(ImageFormat.Auto, 128));
+		}
+
+		public static string GetFullUsername(this DiscordUser user) => $"{user.Username}#{user.Discriminator}";
 	}
 }

@@ -72,7 +72,7 @@ namespace SocialGuard.YC.Modules
 				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
 				config.ApiLogin = new(username, encryption.Encrypt(password));
 				await repository.ReplaceOneAsync(config);
-				await context.RespondAsync($"API credentials has been set.");
+				await context.Channel.SendMessageAsync($"API credentials has been set.");
 			}
 
 			[Command("set-autoban"), Aliases("autoban"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.BanMembers)]
@@ -105,7 +105,7 @@ namespace SocialGuard.YC.Modules
 				AuthRegisterCredentials credentials = new(username, email, password);
 				AuthResponse<IAuthComponent> result = await auth.RegisterNewUserAsync(credentials);
 
-				await context.RespondAsync($"{context.User.Mention} {result.Status} : {result.Message}\n");
+				await context.Channel.SendMessageAsync($"{context.User.Mention} {result.Status} : {result.Message}\n");
 			}
 		}
 	}

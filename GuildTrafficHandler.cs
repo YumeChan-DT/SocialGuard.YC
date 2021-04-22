@@ -29,7 +29,7 @@ namespace SocialGuard.YC
 			{
 				TrustlistUser entry = await apiService.LookupUserAsync(e.Member.Id);
 				DiscordChannel joinLog = e.Guild.GetChannel(config.JoinLogChannel);
-				DiscordEmbed entryEmbed = Utilities.BuildUserRecordEmbed(entry, e.Member, e.Member.Id);
+				DiscordEmbed entryEmbed = Utilities.BuildUserRecordEmbed(entry, e.Member);
 
 
 				await joinLog.SendMessageAsync($"User **{e.Member}** ({e.Member.Mention}) has joined the server.", entryEmbed);

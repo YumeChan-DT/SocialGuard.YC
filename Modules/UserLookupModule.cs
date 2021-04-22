@@ -29,44 +29,44 @@ namespace SocialGuard.YC.Modules
 			}
 
 			[Command("lookup"), Aliases("get")]
-			public async Task LookupAsync(CommandContext context, DiscordUser user) => await LookupAsync(context, user, user.Id);
+			public async Task LookupAsync(CommandContext context, DiscordUser user) => await RespondLookupAsync(context, user);
 
 			[Command("insert"), Aliases("add"), RequireGuild, RequireUserPermissions(Permissions.BanMembers)]
-			public async Task InsertUserAsync(CommandContext context, DiscordUser user, [Range(0, 3)] byte level, [RemainingText] string reason)
+			public async Task InsertUserAsync(CommandContext context, DiscordUser user, byte level, [RemainingText] string reason)
 			{
-				await InsertUserAsync(context, user, user.Id, level, reason);
+				await InsertUserAsync(context, user, level, reason, false);
 			}
 
 			[Command("ban"), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers)]
 			public async Task BanUserAsync(CommandContext context, DiscordUser user, [Range(0, 3)] byte level, [RemainingText] string reason)
 			{
-				await InsertUserAsync(context, user, user.Id, level, reason, true);
+				await InsertUserAsync(context, user, level, reason, true);
 			}
 
-			private async Task InsertUserAsync(CommandContext context, DiscordUser user, ulong userId, byte level, string reason, bool banUser = false)
+			private async Task InsertUserAsync(CommandContext context, DiscordUser user, byte level, string reason, bool banUser = false)
 			{
 				if (user is not null)
 				{
 					if (user?.Id == context.User.Id)
 					{
-						await context.RespondAsync($"{context.User.Mention} You cannot insert yourself in the Trustlist.");
+						await context.RespondAsync("You cannot insert yourself in the Trustlist.");
 						return;
 					}
 					else if (user.IsBot)
 					{
-						await context.RespondAsync($"{context.User.Mention} You cannot insert a Bot in the Trustlist.");
+						await context.RespondAsync("You cannot insert a Bot in the Trustlist.");
 						return;
 					}
-					else if ((user as DiscordMember).Roles.Any(r => r.Permissions == (r.Permissions & Permissions.ManageGuild)))
+					else if ((user as DiscordMember)?.Roles.Any(r => r.Permissions == (r.Permissions & Permissions.ManageGuild)) ?? false)
 					{
-						await context.RespondAsync($"You cannot insert a server operator in the Trustlist. Demote them first.");
+						await context.RespondAsync("You cannot insert a server operator in the Trustlist. Demote them first.");
 						return;
 					}
 				}
 
 				if (reason.Length < 5)
 				{
-					await context.RespondAsync($"{context.User.Mention} Reason is too short");
+					await context.RespondAsync("Reason is too short");
 				}
 				else
 				{
@@ -78,23 +78,23 @@ namespace SocialGuard.YC.Modules
 						{
 							await trustlist.InsertOrEscalateUserAsync(new()
 							{
-								Id = userId,
+								Id = user.Id,
 								EscalationLevel = level,
 								EscalationNote = reason
 							}, await auth.GetOrUpdateAuthTokenAsync(context.Guild.Id));
 
-							await context.RespondAsync($"User '{user?.Mention ?? userId.ToString()}' successfully inserted into Trustlist.");
-							await LookupAsync(context, user, userId);
+							string userMention = (user as DiscordMember)?.Mention ?? user.Id.ToString();
+							await context.RespondAsync($"User '{userMention}' successfully inserted into Trustlist.", await LookupAsync(user));
 
 							if (banUser || (config.AutoBanBlacklisted && level >= 3))
 							{
-								await context.Guild.BanMemberAsync(userId, 0, $"[SocialGuard] {reason}");
-								await context.Guild.GetChannel(config.BanLogChannel).SendMessageAsync($"Banned user '{user}'.");
+								await context.Guild.BanMemberAsync(user.Id, 0, $"[SocialGuard] {reason}");
+								await context.Guild.GetChannel(config.BanLogChannel).SendMessageAsync($"Banned user '{userMention}'.");
 							}
 						}
 						else
 						{
-							await context.RespondAsync("No API Credentials set. Use ``sg config accesskey <key>`` to set an Access Key.");
+							await context.RespondAsync($"No API Credentials set. Use ``{context.Prefix}sg config accesskey <key>`` to set an Access Key.");
 						}
 					}
 					catch (ApplicationException e)
@@ -107,14 +107,19 @@ namespace SocialGuard.YC.Modules
 				}
 			}
 
-			public async Task LookupAsync(CommandContext context, DiscordUser user, ulong userId, bool silenceOnClear = false)
+			public async Task RespondLookupAsync(CommandContext context, DiscordUser user, bool silenceOnClear = false)
 			{
-				TrustlistUser entry = await trustlist.LookupUserAsync(userId);
+				TrustlistUser entry = await trustlist.LookupUserAsync(user.Id);
 
 				if (!silenceOnClear || entry.EscalationLevel is not 0)
 				{
-					await context.RespondAsync(embed: Utilities.BuildUserRecordEmbed(entry, user, userId));
+					await context.RespondAsync(Utilities.BuildUserRecordEmbed(entry, user));
 				}
+			}
+
+			public async Task<DiscordEmbed> LookupAsync(DiscordUser user)
+			{
+				return Utilities.BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
 			}
 		}
 	}
