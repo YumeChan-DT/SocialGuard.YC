@@ -29,7 +29,7 @@ namespace SocialGuard.YC.Modules
 			}
 
 			[Command("lookup"), Aliases("get")]
-			public async Task LookupAsync(CommandContext context, DiscordUser user) => await LookupAsync(context, user, user.Id);
+			public async Task LookupAsync(CommandContext context, DiscordUser user) => await RespondLookupAsync(context, user);
 
 			[Command("insert"), Aliases("add"), RequireGuild, RequireUserPermissions(Permissions.BanMembers)]
 			public async Task InsertUserAsync(CommandContext context, DiscordUser user, byte level, [RemainingText] string reason)
@@ -83,13 +83,13 @@ namespace SocialGuard.YC.Modules
 								EscalationNote = reason
 							}, await auth.GetOrUpdateAuthTokenAsync(context.Guild.Id));
 
-							await context.RespondAsync($"User '{user?.Mention ?? user.Id.ToString()}' successfully inserted into Trustlist.");
-							await LookupAsync(context, user, user.Id);
+							string userMention = (user as DiscordMember)?.Mention ?? user.Id.ToString();
+							await context.RespondAsync($"User '{userMention}' successfully inserted into Trustlist.", await LookupAsync(user));
 
 							if (banUser || (config.AutoBanBlacklisted && level >= 3))
 							{
 								await context.Guild.BanMemberAsync(user.Id, 0, $"[SocialGuard] {reason}");
-								await context.Guild.GetChannel(config.BanLogChannel).SendMessageAsync($"Banned user '{user}'.");
+								await context.Guild.GetChannel(config.BanLogChannel).SendMessageAsync($"Banned user '{userMention}'.");
 							}
 						}
 						else
@@ -107,14 +107,19 @@ namespace SocialGuard.YC.Modules
 				}
 			}
 
-			public async Task LookupAsync(CommandContext context, DiscordUser user, ulong userId, bool silenceOnClear = false)
+			public async Task RespondLookupAsync(CommandContext context, DiscordUser user, bool silenceOnClear = false)
 			{
-				TrustlistUser entry = await trustlist.LookupUserAsync(userId);
+				TrustlistUser entry = await trustlist.LookupUserAsync(user.Id);
 
 				if (!silenceOnClear || entry.EscalationLevel is not 0)
 				{
-					await context.RespondAsync(embed: Utilities.BuildUserRecordEmbed(entry, user, userId));
+					await context.RespondAsync(Utilities.BuildUserRecordEmbed(entry, user));
 				}
+			}
+
+			public async Task<DiscordEmbed> LookupAsync(DiscordUser user)
+			{
+				return Utilities.BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
 			}
 		}
 	}
