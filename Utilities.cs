@@ -40,18 +40,22 @@ namespace SocialGuard.YC
 				>= 3 => (DiscordColor.Red, "Blacklisted", "This user is dangerous and has been blacklisted. Banning this user is greatly advised.")
 			};
 
-			DiscordEmbedBuilder builder = new();
-			builder.WithTitle($"Trustlist User : {discordUser?.Username}");
-			builder.AddField("ID", $"`{discordUser?.Id}`", true);
+			DiscordEmbedBuilder builder = new()
+			{
+				Title = $"Trustlist User : {discordUser.Username}",
+				Color = color,
+				Description = desc,
+				Footer = new() { Text = SignatureFooter }
+			};
 
-			builder.Color = color;
-			builder.Description = desc;
-			builder.Footer = new() { Text = SignatureFooter };
+			builder.AddField("ID", $"`{discordUser.Id}`", true);
+			builder.AddField("Account Created", discordUser.CreationTimestamp.UtcDateTime.ToString(), true);
 
 			if (trustlistUser is not null)
 			{
-				builder.AddField("Escalation Level", $"{trustlistUser.EscalationLevel} - {name}", true)
+				builder
 					.AddField("Emitter", $"{trustlistUser.Emitter.DisplayName} (`{trustlistUser.Emitter.Login}`)")
+					.AddField("Escalation Level", $"**{trustlistUser.EscalationLevel}** - {name}", true)
 					.AddField("First Entered", trustlistUser.EntryAt.ToString(), true)
 					.AddField("Last Escalation", trustlistUser.LastEscalated.ToString(), true)
 					.AddField("Reason", trustlistUser.EscalationNote);

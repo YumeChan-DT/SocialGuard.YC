@@ -1,11 +1,9 @@
 ﻿using Nodsoft.YumeChan.PluginBase.Tools;
 using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using SocialGuard.YC.Data.Components;
 using SocialGuard.YC.Data.Models.Api;
