@@ -32,14 +32,14 @@ namespace SocialGuard.YC
 				DiscordEmbed entryEmbed = Utilities.BuildUserRecordEmbed(entry, e.Member);
 
 
-				await joinLog.SendMessageAsync($"User **{e.Member}** ({e.Member.Mention}) has joined the server.", entryEmbed);
+				await joinLog.SendMessageAsync($"User **{e.Member.GetFullUsername()}** ({e.Member.Mention}) has joined the server.", entryEmbed);
 
 				if (entry?.EscalationLevel >= 3 && config.AutoBanBlacklisted)
 				{				
 					await e.Member.BanAsync(0, $"[SocialGuard] \n{entry.EscalationNote}");
 
 					await e.Guild.GetChannel(config.BanLogChannel is not 0 ? config.BanLogChannel : config.JoinLogChannel)
-						.SendMessageAsync($"User **{e.Member}** ({e.Member.Mention}) banned on server join.", entryEmbed);
+						.SendMessageAsync($"User **{e.Member.GetFullUsername()}** ({e.Member.Mention}) banned on server join.", entryEmbed);
 				}
 			}
 		}
