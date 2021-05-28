@@ -45,23 +45,20 @@ namespace SocialGuard.YC.Modules
 
 			private async Task InsertUserAsync(CommandContext context, DiscordUser user, byte level, string reason, bool banUser = false)
 			{
-				if (user is not null)
+				if (user?.Id == context.User.Id)
 				{
-					if (user?.Id == context.User.Id)
-					{
-						await context.RespondAsync("You cannot insert yourself in the Trustlist.");
-						return;
-					}
-					else if (user.IsBot)
-					{
-						await context.RespondAsync("You cannot insert a Bot in the Trustlist.");
-						return;
-					}
-					else if ((user as DiscordMember)?.Roles.Any(r => r.Permissions == (r.Permissions & Permissions.ManageGuild)) ?? false)
-					{
-						await context.RespondAsync("You cannot insert a server operator in the Trustlist. Demote them first.");
-						return;
-					}
+					await context.RespondAsync("You cannot insert yourself in the Trustlist.");
+					return;
+				}
+				else if (user.IsBot)
+				{
+					await context.RespondAsync("You cannot insert a Bot in the Trustlist.");
+					return;
+				}
+				else if ((user as DiscordMember)?.Roles.Any(r => r.Permissions == (r.Permissions & Permissions.ManageGuild)) ?? false)
+				{
+					await context.RespondAsync("You cannot insert a server operator in the Trustlist. Demote them first.");
+					return;
 				}
 
 				if (reason.Length < 5)

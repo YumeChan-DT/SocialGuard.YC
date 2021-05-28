@@ -26,7 +26,7 @@ namespace SocialGuard.YC.Services
 
 		public async Task<TrustlistUser> LookupUserAsync(ulong userId)
 		{
-			HttpRequestMessage request = new(HttpMethod.Get, $"/api/user/{userId}");
+			HttpRequestMessage request = new(HttpMethod.Get, $"/api/v2/user/{userId}");
 			HttpResponseMessage response = await client.SendAsync(request);
 
 			return response.StatusCode is HttpStatusCode.NotFound 
@@ -36,7 +36,7 @@ namespace SocialGuard.YC.Services
 
 		public async Task<TrustlistUser> ListKnownUsersAsync()
 		{
-			HttpRequestMessage request = new(HttpMethod.Get, "/api/user/list");
+			HttpRequestMessage request = new(HttpMethod.Get, "/api/v2/user/list");
 			HttpResponseMessage response = await client.SendAsync(request);
 
 			return await Utilities.ParseResponseFullAsync<TrustlistUser>(response);
@@ -44,7 +44,7 @@ namespace SocialGuard.YC.Services
 
 		public async Task InsertOrEscalateUserAsync(TrustlistUser user, AuthToken token)
 		{
-			using HttpRequestMessage request = new(await LookupUserAsync(user.Id) is null ? HttpMethod.Post : HttpMethod.Put, "/api/user");
+			using HttpRequestMessage request = new(await LookupUserAsync(user.Id) is null ? HttpMethod.Post : HttpMethod.Put, "/api/v2/user");
 			request.Content = new StringContent(JsonSerializer.Serialize(user, Utilities.SerializerOptions), Encoding.UTF8, JsonMimeType);
 			request.Headers.Authorization = new("bearer", token.Token);
 

@@ -21,7 +21,7 @@ namespace SocialGuard.YC.Services
 
 		public async Task<Emitter> GetEmitterAsync(AuthToken token)
 		{
-			using HttpRequestMessage request = new(HttpMethod.Get, "/api/emitter");
+			using HttpRequestMessage request = new(HttpMethod.Get, "/api/v2/emitter");
 			request.Headers.Authorization = new("bearer", token.Token);
 
 			using HttpResponseMessage response = await httpClient.SendAsync(request);
@@ -38,7 +38,7 @@ namespace SocialGuard.YC.Services
 
 		public async Task SetEmitterAsync(Emitter emitter, AuthToken token)
 		{
-			using HttpRequestMessage request = new(HttpMethod.Post, "/api/emitter");
+			using HttpRequestMessage request = new(HttpMethod.Post, "/api/v2/emitter");
 			request.Content = JsonContent.Create(emitter);
 			request.Headers.Authorization = new("bearer", token.Token);
 

@@ -41,7 +41,7 @@ namespace SocialGuard.YC.Services
 			}
 			else
 			{
-				using HttpRequestMessage request = new(HttpMethod.Post, "/api/auth/login")
+				using HttpRequestMessage request = new(HttpMethod.Post, "/api/v2/auth/login")
 				{
 					Content = JsonContent.Create(new AuthCredentials(login.Username, encryption.Decrypt(login.Password)), options: Utilities.SerializerOptions)
 				};
@@ -64,7 +64,7 @@ namespace SocialGuard.YC.Services
 
 		public async Task<AuthResponse<IAuthComponent>> RegisterNewUserAsync(AuthRegisterCredentials registerDetails)
 		{
-			using HttpRequestMessage request = new(HttpMethod.Post, "/api/auth/register")
+			using HttpRequestMessage request = new(HttpMethod.Post, "/api/v2/auth/register")
 			{
 				Content = JsonContent.Create(registerDetails)
 			};
