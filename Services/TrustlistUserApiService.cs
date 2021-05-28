@@ -29,7 +29,7 @@ namespace SocialGuard.YC.Services
 			HttpRequestMessage request = new(HttpMethod.Get, $"/api/v2/user/{userId}");
 			HttpResponseMessage response = await client.SendAsync(request);
 
-			return response.StatusCode is HttpStatusCode.NotFound 
+			return response.StatusCode is HttpStatusCode.NoContent 
 				? null
 				: await Utilities.ParseResponseFullAsync<TrustlistUser>(response);
 		}
