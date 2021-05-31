@@ -29,16 +29,16 @@ namespace SocialGuard.YC
 			if (config.JoinLogChannel is not 0)
 			{
 				TrustlistUser user = await apiService.LookupUserAsync(e.Member.Id);
-				TrustlistEntry entry = user?.Entries.Last();
+				TrustlistEntry entry = user?.GetLatestMaxEntry();
 				DiscordChannel joinLog = e.Guild.GetChannel(config.JoinLogChannel);
-				DiscordEmbed entryEmbed = Utilities.BuildUserRecordEmbed(entry, e.Member);
+				DiscordEmbed entryEmbed = Utilities.BuildUserRecordEmbed(user, e.Member);
 
 
 				await joinLog.SendMessageAsync($"User **{e.Member.GetFullUsername()}** ({e.Member.Mention}) has joined the server.", entryEmbed);
 
-				if (user.GetMaxEscalationLevel() >= 3 && config.AutoBanBlacklisted)
+				if (user?.GetMaxEscalationLevel() is not null and >= 3 && config.AutoBanBlacklisted)
 				{				
-					await e.Member.BanAsync(0, $"[SocialGuard] \n{user.Entries.Last().EscalationNote}");
+					await e.Member.BanAsync(0, $"[SocialGuard] \n{entry.EscalationNote}");
 
 					await e.Guild.GetChannel(config.BanLogChannel is not 0 ? config.BanLogChannel : config.JoinLogChannel)
 						.SendMessageAsync($"User **{e.Member.GetFullUsername()}** ({e.Member.Mention}) banned on server join.", entryEmbed);

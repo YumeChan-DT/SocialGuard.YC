@@ -109,14 +109,11 @@ namespace SocialGuard.YC.Modules
 
 				if (!silenceOnClear || user.GetMaxEscalationLevel() is not 0)
 				{
-					await context.RespondAsync(Utilities.BuildUserRecordEmbed(user?.Entries.Last(), discordUser));
+					await context.RespondAsync(Utilities.BuildUserRecordEmbed(user, discordUser));
 				}
 			}
 
-			public async Task<DiscordEmbed> LookupAsync(DiscordUser user)
-			{
-				return Utilities.BuildUserRecordEmbed((await trustlist.LookupUserAsync(user.Id)).Entries.Last(), user);
-			}
+			public async Task<DiscordEmbed> LookupAsync(DiscordUser user) => Utilities.BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
 		}
 	}
 }

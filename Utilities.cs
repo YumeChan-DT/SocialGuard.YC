@@ -30,15 +30,10 @@ namespace SocialGuard.YC
 			return config;
 		}
 
-		public static DiscordEmbed BuildUserRecordEmbed(TrustlistEntry entry, DiscordUser discordUser)
+		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser)
 		{
-			(DiscordColor color, string name, string desc) = entry?.EscalationLevel switch
-			{
-				null or 0 => (DiscordColor.Green, "Clear", "This user has no record, and is cleared safe."),
-				1 => (DiscordColor.Blue, "Suspicious", "This user is marked as suspicious. Their behaviour should be monitored."),
-				2 => (DiscordColor.Orange, "Untrusted", "This user is marked as untrusted. Please exerce caution when interacting with them."),
-				>= 3 => (DiscordColor.Red, "Blacklisted", "This user is dangerous and has been blacklisted. Banning this user is greatly advised.")
-			};
+			TrustlistEntry entry = trustlistUser.GetLatestMaxEntry();
+			(DiscordColor color, string name, string desc) = GetEscalationDescriptions(entry?.EscalationLevel ?? 0);
 
 			DiscordEmbedBuilder builder = new()
 			{
@@ -54,14 +49,27 @@ namespace SocialGuard.YC
 			if (entry is not null)
 			{
 				builder
-					.AddField("Emitter", $"{entry.Emitter.DisplayName} (`{entry.Emitter.Login}`)")
-					.AddField("Escalation Level", $"**{entry.EscalationLevel}** - {name}", true)
+					.AddField("Last Emitter", $"{entry.Emitter.DisplayName} (`{entry.Emitter.Login}`)")
+					.AddField("Highest Escalation Level", $"**{entry.EscalationLevel}** - {name}", true)
+					.AddField("Average Escalation Level", $"**{trustlistUser.GetMedianEscalationLevel():F2}**", true)
+					.AddField("Total Entries", $"**{trustlistUser.Entries.Length}**", true)
 					.AddField("First Entered", entry.EntryAt.ToString(), true)
 					.AddField("Last Escalation", entry.LastEscalated.ToString(), true)
-					.AddField("Reason", entry.EscalationNote);
+					.AddField("Last Reason", entry.EscalationNote);
 			}
 
 			return builder.Build();
+		}
+
+		private static (DiscordColor color, string name, string desc) GetEscalationDescriptions(byte escalationLevel)
+		{
+			return escalationLevel switch
+			{
+				0 => (DiscordColor.Green, "Clear", "This user has no record, and is cleared safe."),
+				1 => (DiscordColor.Blue, "Suspicious", "This user is marked as suspicious. Their behaviour should be monitored."),
+				2 => (DiscordColor.Orange, "Untrusted", "This user is marked as untrusted. Please exerce caution when interacting with them."),
+				>= 3 => (DiscordColor.Red, "Blacklisted", "This user is dangerous and has been blacklisted. Banning this user is greatly advised.")
+			};
 		}
 
 		public static async Task<GuildConfig> FindOrCreateConfigAsync(this IEntityRepository<GuildConfig, ulong> repository, ulong guildId)
