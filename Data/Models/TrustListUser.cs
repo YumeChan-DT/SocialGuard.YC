@@ -1,25 +1,19 @@
-﻿using Nodsoft.YumeChan.PluginBase.Tools.Data;
-using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.Linq;
 
 
 
 namespace SocialGuard.YC.Data.Models
 {
-	public record TrustlistUser : IDocument<ulong>
+	public record TrustlistUser
 	{
-		public ulong Id { get; set; }
+		public ulong Id { get; init; }
 
-		public DateTime EntryAt { get; set; }
+		public TrustlistEntry[] Entries { get; init; }
 
-		public DateTime LastEscalated { get; set; }
 
-		[Required, Range(0, 3)]
-		public byte EscalationLevel { get; set; }
+		public byte GetMaxEscalationLevel() => Entries?.Max(e => e.EscalationLevel) ?? 0;
+		public float GetMedianEscalationLevel() => (float)(Entries?.Average(e => e.EscalationLevel) ?? 0f);
 
-		[MinLength(5), MaxLength(2000)]
-		public string EscalationNote { get; set; }
 
-		public Emitter Emitter { get; set; }
 	}
 }

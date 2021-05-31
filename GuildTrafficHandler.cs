@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus;
+using System.Linq;
 
 namespace SocialGuard.YC
 {
@@ -27,16 +28,17 @@ namespace SocialGuard.YC
 
 			if (config.JoinLogChannel is not 0)
 			{
-				TrustlistUser entry = await apiService.LookupUserAsync(e.Member.Id);
+				TrustlistUser user = await apiService.LookupUserAsync(e.Member.Id);
+				TrustlistEntry entry = user?.Entries.Last();
 				DiscordChannel joinLog = e.Guild.GetChannel(config.JoinLogChannel);
 				DiscordEmbed entryEmbed = Utilities.BuildUserRecordEmbed(entry, e.Member);
 
 
 				await joinLog.SendMessageAsync($"User **{e.Member.GetFullUsername()}** ({e.Member.Mention}) has joined the server.", entryEmbed);
 
-				if (entry?.EscalationLevel >= 3 && config.AutoBanBlacklisted)
+				if (user.GetMaxEscalationLevel() >= 3 && config.AutoBanBlacklisted)
 				{				
-					await e.Member.BanAsync(0, $"[SocialGuard] \n{entry.EscalationNote}");
+					await e.Member.BanAsync(0, $"[SocialGuard] \n{user.Entries.Last().EscalationNote}");
 
 					await e.Guild.GetChannel(config.BanLogChannel is not 0 ? config.BanLogChannel : config.JoinLogChannel)
 						.SendMessageAsync($"User **{e.Member.GetFullUsername()}** ({e.Member.Mention}) banned on server join.", entryEmbed);

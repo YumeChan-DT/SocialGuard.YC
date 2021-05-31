@@ -30,9 +30,9 @@ namespace SocialGuard.YC
 			return config;
 		}
 
-		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser)
+		public static DiscordEmbed BuildUserRecordEmbed(TrustlistEntry entry, DiscordUser discordUser)
 		{
-			(DiscordColor color, string name, string desc) = trustlistUser?.EscalationLevel switch
+			(DiscordColor color, string name, string desc) = entry?.EscalationLevel switch
 			{
 				null or 0 => (DiscordColor.Green, "Clear", "This user has no record, and is cleared safe."),
 				1 => (DiscordColor.Blue, "Suspicious", "This user is marked as suspicious. Their behaviour should be monitored."),
@@ -51,14 +51,14 @@ namespace SocialGuard.YC
 			builder.AddField("ID", $"`{discordUser.Id}`", true);
 			builder.AddField("Account Created", discordUser.CreationTimestamp.UtcDateTime.ToString(), true);
 
-			if (trustlistUser is not null)
+			if (entry is not null)
 			{
 				builder
-					.AddField("Emitter", $"{trustlistUser.Emitter.DisplayName} (`{trustlistUser.Emitter.Login}`)")
-					.AddField("Escalation Level", $"**{trustlistUser.EscalationLevel}** - {name}", true)
-					.AddField("First Entered", trustlistUser.EntryAt.ToString(), true)
-					.AddField("Last Escalation", trustlistUser.LastEscalated.ToString(), true)
-					.AddField("Reason", trustlistUser.EscalationNote);
+					.AddField("Emitter", $"{entry.Emitter.DisplayName} (`{entry.Emitter.Login}`)")
+					.AddField("Escalation Level", $"**{entry.EscalationLevel}** - {name}", true)
+					.AddField("First Entered", entry.EntryAt.ToString(), true)
+					.AddField("Last Escalation", entry.LastEscalated.ToString(), true)
+					.AddField("Reason", entry.EscalationNote);
 			}
 
 			return builder.Build();
