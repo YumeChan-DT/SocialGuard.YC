@@ -32,7 +32,7 @@ namespace SocialGuard.YC
 
 		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser)
 		{
-			TrustlistEntry entry = trustlistUser.GetLatestMaxEntry();
+			TrustlistEntry entry = trustlistUser?.GetLatestMaxEntry();
 			(DiscordColor color, string name, string desc) = GetEscalationDescriptions(entry?.EscalationLevel ?? 0);
 
 			DiscordEmbedBuilder builder = new()
