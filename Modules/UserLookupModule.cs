@@ -73,9 +73,8 @@ namespace SocialGuard.YC.Modules
 
 						if (config.ApiLogin is not null)
 						{
-							await trustlist.InsertOrEscalateUserAsync(new()
+							await trustlist.SubmitEntryAsync(user.Id, new()
 							{
-								Id = user.Id,
 								EscalationLevel = level,
 								EscalationNote = reason
 							}, await auth.GetOrUpdateAuthTokenAsync(context.Guild.Id));
@@ -104,20 +103,17 @@ namespace SocialGuard.YC.Modules
 				}
 			}
 
-			public async Task RespondLookupAsync(CommandContext context, DiscordUser user, bool silenceOnClear = false)
+			public async Task RespondLookupAsync(CommandContext context, DiscordUser discordUser, bool silenceOnClear = false)
 			{
-				TrustlistUser entry = await trustlist.LookupUserAsync(user.Id);
+				TrustlistUser user = await trustlist.LookupUserAsync(discordUser.Id);
 
-				if (!silenceOnClear || entry.EscalationLevel is not 0)
+				if (!silenceOnClear || user.GetMaxEscalationLevel() is not 0)
 				{
-					await context.RespondAsync(Utilities.BuildUserRecordEmbed(entry, user));
+					await context.RespondAsync(Utilities.BuildUserRecordEmbed(user, discordUser));
 				}
 			}
 
-			public async Task<DiscordEmbed> LookupAsync(DiscordUser user)
-			{
-				return Utilities.BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
-			}
+			public async Task<DiscordEmbed> LookupAsync(DiscordUser user) => Utilities.BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
 		}
 	}
 }

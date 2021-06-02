@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using SocialGuard.YC.Data.Components;
 using SocialGuard.YC.Data.Models;
 using SocialGuard.YC.Data.Models.Config;
+using System.Linq;
 
 namespace SocialGuard.YC.Services
 {
@@ -24,28 +25,30 @@ namespace SocialGuard.YC.Services
 			client.BaseAddress = new(config.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig().ApiHost);
 		}
 
-		public async Task<TrustlistUser> LookupUserAsync(ulong userId)
+		public async Task<TrustlistUser> LookupUserAsync(ulong userId) => (await LookupUsersAsync(new ulong[] { userId }))?[0];
+
+		public async Task<TrustlistUser[]> LookupUsersAsync(ulong[] usersId)
 		{
-			HttpRequestMessage request = new(HttpMethod.Get, $"/api/v2/user/{userId}");
+			HttpRequestMessage request = new(HttpMethod.Get, $"/api/v3/user/{string.Join(',', usersId)}");
 			HttpResponseMessage response = await client.SendAsync(request);
 
-			return response.StatusCode is HttpStatusCode.NoContent 
-				? null
-				: await Utilities.ParseResponseFullAsync<TrustlistUser>(response);
+			return await Utilities.ParseResponseFullAsync<TrustlistUser[]>(response) is TrustlistUser[] parsed && parsed.Length is not 0
+				? parsed
+				: null;
 		}
 
-		public async Task<TrustlistUser> ListKnownUsersAsync()
+		public async Task<ulong[]> ListKnownUsersAsync()
 		{
-			HttpRequestMessage request = new(HttpMethod.Get, "/api/v2/user/list");
+			HttpRequestMessage request = new(HttpMethod.Get, "/api/v3/user/list");
 			HttpResponseMessage response = await client.SendAsync(request);
 
-			return await Utilities.ParseResponseFullAsync<TrustlistUser>(response);
+			return await Utilities.ParseResponseFullAsync<ulong[]>(response);
 		}
 
-		public async Task InsertOrEscalateUserAsync(TrustlistUser user, AuthToken token)
+		public async Task SubmitEntryAsync(ulong userId, TrustlistEntry entry, AuthToken token)
 		{
-			using HttpRequestMessage request = new(await LookupUserAsync(user.Id) is null ? HttpMethod.Post : HttpMethod.Put, "/api/v2/user");
-			request.Content = new StringContent(JsonSerializer.Serialize(user, Utilities.SerializerOptions), Encoding.UTF8, JsonMimeType);
+			using HttpRequestMessage request = new(HttpMethod.Post, $"/api/v3/user/{userId}");
+			request.Content = new StringContent(JsonSerializer.Serialize(entry, Utilities.SerializerOptions), Encoding.UTF8, JsonMimeType);
 			request.Headers.Authorization = new("bearer", token.Token);
 
 			using HttpResponseMessage response = await client.SendAsync(request);
