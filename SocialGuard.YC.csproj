@@ -8,12 +8,12 @@
     <Product>NSYS SocialGuard (YC)</Product>
     <Copyright>GNU LGPLv3</Copyright>
     <RepositoryType>Git</RepositoryType>
+    <RepositoryUrl>https://github.com/Transcom-DT/SocialGuard.YC</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup>
     <OutDir>$(YumeChan_PluginsLocation)</OutDir>
     <OutputPath>$(YumeChan_PluginsLocation)</OutputPath>
-    <RepositoryUrl>https://github.com/Transcom-DT/SocialGuard.YC</RepositoryUrl>
     <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
   </PropertyGroup>
   
