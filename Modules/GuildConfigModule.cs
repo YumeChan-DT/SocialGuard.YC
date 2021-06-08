@@ -37,7 +37,7 @@ namespace SocialGuard.YC.Modules
 				DiscordChannel current = context.Guild.GetChannel(config.JoinLogChannel);
 				await context.RespondAsync($"Current Join Log channel : {current?.Mention ?? "None"}.");
 			}
-			[Command]
+			[Command("joinlog")]
 			public async Task JoinLogAsync(CommandContext context, DiscordChannel channel)
 			{
 				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
@@ -54,7 +54,7 @@ namespace SocialGuard.YC.Modules
 				DiscordChannel current = context.Guild.GetChannel(config.BanLogChannel);
 				await context.RespondAsync($"Current Ban Log channel : {current?.Mention ?? "None"}.");
 			}
-			[Command]
+			[Command("banlog")]
 			public async Task BanLogAsync(CommandContext context, DiscordChannel channel)
 			{
 				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
@@ -64,8 +64,8 @@ namespace SocialGuard.YC.Modules
 			}
 
 
-			[Command("credentials"), Aliases("login"), Priority(10), RequireUserPermissions(Permissions.ManageGuild)]
-			public async Task ConfigureAccessKeyAsync(CommandContext context, string username, string password)
+			[Command("login"), Aliases("credentials"), Priority(10), RequireUserPermissions(Permissions.ManageGuild)]
+			public async Task ConfigureLoginAsync(CommandContext context, string username, string password)
 			{
 				await context.Message.DeleteAsync();
 
@@ -76,13 +76,13 @@ namespace SocialGuard.YC.Modules
 			}
 
 			[Command("autoban"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.BanMembers)]
-			public async Task ConfigureAutobanAsync(CommandContext context)
+			public async Task AutobanAsync(CommandContext context)
 			{
 				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
 				await context.RespondAsync($"Auto-ban Blacklist is **{(config.AutoBanBlacklisted ? "on" : "off")}**.");
 			}
-			[Command]
-			public async Task ConfigureAutobanAsync(CommandContext context, string key)
+			[Command("autoban")]
+			public async Task AutobanAsync(CommandContext context, string key)
 			{
 				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
 				config.AutoBanBlacklisted = Utilities.ParseBoolParameter(key) ?? config.AutoBanBlacklisted;
@@ -91,7 +91,7 @@ namespace SocialGuard.YC.Modules
 			}
 			
 			[Command("joinlog-suppress"), RequireUserPermissions(Permissions.ManageGuild)]
-			public async Task ConfigureJoinlogSuppressionAsync(CommandContext context)
+			public async Task JoinlogSuppressAsync(CommandContext context)
 			{
 				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
 
@@ -99,8 +99,8 @@ namespace SocialGuard.YC.Modules
 					? "All clean records are currently suppressed from displaying in Joinlog." 
 					: "All records are displayed in Joinlog.");
 			}
-			[Command]
-			public async Task ConfigureJoinlogSuppressionAsync(CommandContext context, string key)
+			[Command("joinlog-suppress")]
+			public async Task JoinlogSuppressAsync(CommandContext context, string key)
 			{
 				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
 				config.SuppressJoinlogCleanRecords = Utilities.ParseBoolParameter(key) ?? config.SuppressJoinlogCleanRecords;
