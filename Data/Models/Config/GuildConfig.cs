@@ -17,6 +17,7 @@ namespace SocialGuard.YC.Data.Models.Config
 		public ulong BanLogChannel { get; set; }
 
 		public bool AutoBanBlacklisted { get; set; }
+		public bool SuppressJoinlogCleanRecords { get; set; }
 
 		public AuthCredentials ApiLogin { get; set; }
 

@@ -89,6 +89,26 @@ namespace SocialGuard.YC.Modules
 				await repository.ReplaceOneAsync(config);
 				await context.RespondAsync($"Auto-ban Blacklist has been turned **{(config.AutoBanBlacklisted ? "on" : "off")}**.");
 			}
+			
+			[Command("joinlog-suppress"), RequireUserPermissions(Permissions.ManageGuild)]
+			public async Task ConfigureJoinlogSuppressionAsync(CommandContext context)
+			{
+				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
+
+				await context.RespondAsync(config.SuppressJoinlogCleanRecords 
+					? "All clean records are currently suppressed from displaying in Joinlog." 
+					: "All records are displayed in Joinlog.");
+			}
+			[Command]
+			public async Task ConfigureJoinlogSuppressionAsync(CommandContext context, string key)
+			{
+				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
+				config.SuppressJoinlogCleanRecords = Utilities.ParseBoolParameter(key) ?? config.SuppressJoinlogCleanRecords;
+				await repository.ReplaceOneAsync(config);
+				await context.RespondAsync(config.SuppressJoinlogCleanRecords
+					? "All clean records will now be suppressed from displaying in Joinlog."
+					: "All records will now be displayed in Joinlog.");
+			}
 
 
 			[Command("register"), RequireUserPermissions(Permissions.ManageGuild)]
