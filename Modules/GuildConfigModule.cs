@@ -75,7 +75,7 @@ namespace SocialGuard.YC.Modules
 				await context.Channel.SendMessageAsync($"API credentials has been set.");
 			}
 
-			[Command("set-autoban"), Aliases("autoban"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.BanMembers)]
+			[Command("autoban"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.BanMembers)]
 			public async Task ConfigureAutobanAsync(CommandContext context)
 			{
 				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
@@ -85,14 +85,7 @@ namespace SocialGuard.YC.Modules
 			public async Task ConfigureAutobanAsync(CommandContext context, string key)
 			{
 				GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
-
-				config.AutoBanBlacklisted = key.ToLowerInvariant() switch
-				{
-					"true" or "yes" or "on" or "1" => true,
-					"false" or "no" or "off" or "0" => false,
-					_ => config.AutoBanBlacklisted
-				};
-
+				config.AutoBanBlacklisted = Utilities.ParseBoolParameter(key) ?? config.AutoBanBlacklisted;
 				await repository.ReplaceOneAsync(config);
 				await context.RespondAsync($"Auto-ban Blacklist has been turned **{(config.AutoBanBlacklisted ? "on" : "off")}**.");
 			}
