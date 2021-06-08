@@ -70,7 +70,7 @@ You can set up your emitter profile automatically to match your server info, usi
 **This command should be repeated whenever a definitive server name change occurs.**
 
 ### Requesting Verification
-With your Emitter profile setup, you can now contact our Maintainers to request Verification for your profile. This will in turn allow you to enter users into the Trustlist using ``==sg add`` & ``sg ban`` commands.
+With your Emitter profile setup, you can now contact our Maintainers on the [Official NSYS Discord server][https://discord.gg/xV5nFmkbyS] to request Verification for your profile. This will in turn allow you to enter users into the Trustlist using ``==sg add`` & ``sg ban`` commands.
 
 To request verification, you can contact SocialGuard Maintainer **Sakura Isayeki** on Discord : ``Sakura#9999``
 
@@ -88,7 +88,7 @@ With this being said, this README file will provide additional context to comman
 
 **All further commands require you to be authenticated on SocialGuard (see below), and your emitter information to be manually verified by SocialGuard maintainers.**
 
-``==sg add <User/ID> <Level> <Reason>`` Adds a Trustlist entry for given user, at given level :
+``==sg add <User/ID> <Level> <Reason>`` Adds a Trustlist entry for given user, at given Level (N+x) :
  - **1** : Suspicious
  - **2** : Untrusted
  - **3** : Blacklisted/Dangerous
@@ -105,7 +105,8 @@ With this being said, this README file will provide additional context to comman
 | ``login <username> <password>`` | Sets your SocialGuard credentials for use with your server. __Use this in a private/staff-only channel, as your password will be briefly visible.__ | 
 | ``joinlog <channel>``| Sets the Join-log channel, where all new users will have Trustlist results displayed. |
 | ``banlog <channel>`` | Sets the Ban-log channel, where all SocialGuard-based bans are displayed (from either Auto-ban, or ``==sg ban`` command). |
-| ``autoban <on/off>`` | Will automatically ban all Level 3 / Blacklisted users on join, when activated. |
+| ``autoban <on/off>`` | Will automatically ban all Blacklisted (N+3) users on join, when activated. |
+| ``joinlog-suppress <on/off>`` | Will suppress any new clean (N+0) user record from being sent to the joinlog when activated. |
 
 
 ## Emitter
