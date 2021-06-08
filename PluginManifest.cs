@@ -26,14 +26,15 @@ namespace SocialGuard.YC
 		public GuildTrafficHandler GuildTrafficHandler { get; }
 
 
-		public PluginManifest(DiscordClient client, ILogger<PluginManifest> logger, IConfigProvider<IApiConfig> apiConfig, IDatabaseProvider<PluginManifest> database, IHttpClientFactory httpClientFactory)
+		public PluginManifest(DiscordClient client, ILogger<PluginManifest> manifestLogger, ILogger<GuildTrafficHandler> trafficLogger,
+			IConfigProvider<IApiConfig> apiConfig, IDatabaseProvider<PluginManifest> database, IHttpClientFactory httpClientFactory)
 		{
 			VersionString ??= PluginVersion;
 			coreClient = client;
-			this.logger = logger;
+			logger = manifestLogger;
 
 			TrustlistUserApiService apiService = new(httpClientFactory, apiConfig);
-			GuildTrafficHandler = new(apiService, database);
+			GuildTrafficHandler = new(trafficLogger, apiService, database);
 		}
 
 		public override async Task LoadPlugin() 

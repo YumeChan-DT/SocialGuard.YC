@@ -101,5 +101,12 @@ namespace SocialGuard.YC
 		}
 
 		public static string GetFullUsername(this DiscordUser user) => $"{user.Username}#{user.Discriminator}";
+
+		public static bool? ParseBoolParameter(string parameter) =>	parameter.ToLowerInvariant() switch
+		{
+			"true" or "yes" or "on" or "1" => true,
+			"false" or "no" or "off" or "0" => false,
+			_ => null			
+		};
 	}
 }
