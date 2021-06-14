@@ -1,4 +1,4 @@
-﻿using Nodsoft.YumeChan.PluginBase.Tools;
+﻿using YumeChan.PluginBase.Tools;
 using System;
 using System.Net;
 using System.Net.Http;

@@ -2,7 +2,7 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using Nodsoft.YumeChan.PluginBase.Tools.Data;
+using YumeChan.PluginBase.Tools.Data;
 using SocialGuard.YC.Data.Components;
 using SocialGuard.YC.Data.Models.Api;
 using SocialGuard.YC.Data.Models.Config;

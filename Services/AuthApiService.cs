@@ -1,5 +1,5 @@
-﻿using Nodsoft.YumeChan.PluginBase.Tools;
-using Nodsoft.YumeChan.PluginBase.Tools.Data;
+﻿using YumeChan.PluginBase.Tools;
+using YumeChan.PluginBase.Tools.Data;
 using System;
 using System.Net;
 using System.Net.Http;

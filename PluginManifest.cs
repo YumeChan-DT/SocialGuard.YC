@@ -2,8 +2,8 @@
 using Microsoft.Extensions.Logging;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
-using Nodsoft.YumeChan.PluginBase.Tools;
-using Nodsoft.YumeChan.PluginBase.Tools.Data;
+using YumeChan.PluginBase.Tools;
+using YumeChan.PluginBase.Tools.Data;
 using System.Net.Http;
 using System.Threading.Tasks;
 using SocialGuard.YC.Services.Security;
@@ -11,7 +11,7 @@ using DSharpPlus;
 
 namespace SocialGuard.YC
 {
-	public class PluginManifest : Nodsoft.YumeChan.PluginBase.Plugin
+	public class PluginManifest : YumeChan.PluginBase.Plugin
 	{
 		public override string PluginDisplayName => "NSYS SocialGuard (YC)";
 		public override bool PluginStealth => false;

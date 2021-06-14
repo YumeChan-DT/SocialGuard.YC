@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Nodsoft.YumeChan.PluginBase.Tools.Data;
+using YumeChan.PluginBase.Tools.Data;
 using SocialGuard.YC.Data.Components;
 
 

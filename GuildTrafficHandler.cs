@@ -1,7 +1,7 @@
 ﻿using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Data.Models;
 using SocialGuard.YC.Services;
-using Nodsoft.YumeChan.PluginBase.Tools.Data;
+using YumeChan.PluginBase.Tools.Data;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
