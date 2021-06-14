@@ -10,6 +10,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus;
 using System.Linq;
+using MongoDB.Driver;
 
 namespace SocialGuard.YC.Modules
 {
@@ -19,13 +20,13 @@ namespace SocialGuard.YC.Modules
 		{
 			private readonly TrustlistUserApiService trustlist;
 			private readonly AuthApiService auth;
-			private readonly IEntityRepository<GuildConfig, ulong> repository;
+			private readonly IMongoCollection<GuildConfig> guildConfig;
 
 			public UserLookupModule(TrustlistUserApiService trustlist, AuthApiService auth, IDatabaseProvider<PluginManifest> databaseProvider)
 			{
 				this.trustlist = trustlist;
 				this.auth = auth;
-				repository = databaseProvider.GetEntityRepository<GuildConfig, ulong>();
+				guildConfig = databaseProvider.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 			}
 
 			[Command("lookup"), Aliases("get")]
@@ -69,7 +70,7 @@ namespace SocialGuard.YC.Modules
 				{
 					try
 					{
-						GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
+						GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 
 						if (config.ApiLogin is not null)
 						{

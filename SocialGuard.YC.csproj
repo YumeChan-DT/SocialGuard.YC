@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Version>3.0.1</Version>
+    <Version>3.0.2</Version>
     <Authors>Sakura Akeno Isayeki</Authors>
     <Company>Nodsoft Systems</Company>
     <Product>NSYS SocialGuard (YC)</Product>
@@ -25,7 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="YumeChan.PluginBase" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
+    <PackageReference Include="YumeChan.PluginBase" Version="2.1.0">
+      <IncludeAssets></IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

@@ -8,6 +8,7 @@ using DSharpPlus.EventArgs;
 using DSharpPlus;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 
 namespace SocialGuard.YC
 {
@@ -15,13 +16,13 @@ namespace SocialGuard.YC
 	{
 		private readonly ILogger<GuildTrafficHandler> logger;
 		private readonly TrustlistUserApiService apiService;
-		private readonly IEntityRepository<GuildConfig, ulong> configRepository;
+		private readonly IMongoCollection<GuildConfig> configRepository;
 
 		public GuildTrafficHandler(ILogger<GuildTrafficHandler> logger, TrustlistUserApiService api, IDatabaseProvider<PluginManifest> database)
 		{
 			this.logger = logger;
 			apiService = api;
-			configRepository = database.GetEntityRepository<GuildConfig, ulong>();
+			configRepository = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 		}
 
 

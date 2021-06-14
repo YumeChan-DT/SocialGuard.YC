@@ -7,6 +7,7 @@ using SocialGuard.YC.Data.Models;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
 using System.Threading.Tasks;
+using MongoDB.Driver;
 
 namespace SocialGuard.YC.Modules
 {
@@ -15,13 +16,13 @@ namespace SocialGuard.YC.Modules
 		[Group("emitter")]
 		public class EmitterModule : BaseCommandModule
 		{
-			private readonly IEntityRepository<GuildConfig, ulong> guildConfig;
+			private readonly IMongoCollection<GuildConfig> guildConfig;
 			private readonly EmitterApiService emitterService;
 			private readonly AuthApiService authService;
 
 			public EmitterModule(EmitterApiService emitterService, AuthApiService authService, IDatabaseProvider<PluginManifest> database)
 			{
-				guildConfig = database.GetEntityRepository<GuildConfig, ulong>();
+				guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 				this.emitterService = emitterService;
 				this.authService = authService;
 			}
