@@ -9,20 +9,39 @@ using DSharpPlus;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
+using Microsoft.Extensions.Hosting;
+using System.Threading;
 
 namespace SocialGuard.YC
 {
-	public class GuildTrafficHandler
+	public class GuildTrafficHandler : IHostedService
 	{
 		private readonly ILogger<GuildTrafficHandler> logger;
+		private readonly DiscordClient discordClient;
 		private readonly TrustlistUserApiService apiService;
 		private readonly IMongoCollection<GuildConfig> configRepository;
 
-		public GuildTrafficHandler(ILogger<GuildTrafficHandler> logger, TrustlistUserApiService api, IDatabaseProvider<PluginManifest> database)
+		public GuildTrafficHandler(ILogger<GuildTrafficHandler> logger, DiscordClient discordClient, TrustlistUserApiService api, IDatabaseProvider<PluginManifest> database)
 		{
 			this.logger = logger;
+			this.discordClient = discordClient;
 			apiService = api;
 			configRepository = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
+		}
+
+		public Task StartAsync(CancellationToken _)
+		{
+			discordClient.GuildMemberAdded += OnMemberJoinedAsync;
+			logger.LogDebug("Hooked SocialGuard Joinlogs.");
+
+			return Task.CompletedTask;
+		}
+		public Task StopAsync(CancellationToken _)
+		{
+			discordClient.GuildMemberAdded -= OnMemberJoinedAsync;
+			logger.LogDebug("Unhooked SocialGuard Joinlogs.");
+
+			return Task.CompletedTask;
 		}
 
 

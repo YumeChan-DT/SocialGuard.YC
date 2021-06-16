@@ -17,6 +17,8 @@ namespace SocialGuard.YC.Services
 		private const string AccessKeyName = "Access-Key";
 		private const string JsonMimeType = "application/json";
 
+		internal Uri BaseAddress => client.BaseAddress;
+
 		private readonly HttpClient client;
 
 		public TrustlistUserApiService(IHttpClientFactory factory, IConfigProvider<IApiConfig> config)
