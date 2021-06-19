@@ -105,12 +105,12 @@ namespace SocialGuard.YC.Services
 					{
 						trustlistUser ??= await trustlistUserApiService.LookupUserAsync(userId);
 						embed ??= Utilities.BuildUserRecordEmbed(trustlistUser, member, entry);
-						DiscordChannel actionLogChannel = guild.GetChannel(guildConfig.BanLogChannel is 0 ? guildConfig.BanLogChannel : guildConfig.JoinLogChannel);
+						DiscordChannel actionLogChannel = guild.GetChannel(guildConfig.BanLogChannel is not 0 ? guildConfig.BanLogChannel : guildConfig.JoinLogChannel);
 						
 						await actionLogChannel.SendMessageAsync(embed: embed, content: type switch
 						{
-							BroadcastUpdateType.NewEntry => $"New Entry added by Emitter `{entry.Emitter}` for user {member.Mention} :",
-							BroadcastUpdateType.Escalation => $"Entry by Emitter `{entry.Emitter}` was escalated for user {member.Mention} :",
+							BroadcastUpdateType.NewEntry => $"New Entry added by Emitter **{entry.Emitter.DisplayName}** (`{entry.Emitter.Login}`) for user {member.Mention} :",
+							BroadcastUpdateType.Escalation => $"Entry by Emitter **{entry.Emitter.DisplayName}** (`{entry.Emitter.Login}`) was escalated for user {member.Mention} :",
 							_ => throw new NotImplementedException()
 						});
 

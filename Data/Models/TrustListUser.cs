@@ -16,6 +16,8 @@ namespace SocialGuard.YC.Data.Models
 
 		public TrustlistEntry GetLatestMaxEntry() 
 		{
+			if (Entries.Length is 0) return null;
+
 			byte maxEscalation = Entries.Max(e => e.EscalationLevel);
 
 			return (from i in Entries

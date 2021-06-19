@@ -75,7 +75,7 @@ namespace SocialGuard.YC
 
 		public static async Task<GuildConfig> FindOrCreateConfigAsync(this IMongoCollection<GuildConfig> collection, ulong guildId)
 		{
-			GuildConfig config = (await collection.FindAsync(c => c.Id == guildId)).First();
+			GuildConfig config = (await collection.FindAsync(c => c.Id == guildId)).FirstOrDefault();
 
 			if (config is null)
 			{

@@ -81,12 +81,14 @@ namespace SocialGuard.YC.Modules
 							}, await auth.GetOrUpdateAuthTokenAsync(context.Guild.Id));
 
 							string userMention = (user as DiscordMember)?.Mention ?? user.Id.ToString();
-							await context.RespondAsync($"User '{userMention}' successfully inserted into Trustlist.", await LookupAsync(user));
+
+							DiscordEmbed embed = await LookupAsync(user);
+							await context.RespondAsync($"User '{userMention}' successfully inserted into Trustlist.", embed);
 
 							if (banUser || (config.AutoBanBlacklisted && level >= 3))
 							{
 								await context.Guild.BanMemberAsync(user.Id, 0, $"[SocialGuard] {reason}");
-								await context.Guild.GetChannel(config.BanLogChannel).SendMessageAsync($"Banned user '{userMention}'.");
+								await context.Guild.GetChannel(config.BanLogChannel).SendMessageAsync($"Banned user '{userMention}'.", embed);
 							}
 						}
 						else
