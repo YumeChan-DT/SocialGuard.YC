@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus;
-using System.Linq;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using Microsoft.Extensions.Hosting;

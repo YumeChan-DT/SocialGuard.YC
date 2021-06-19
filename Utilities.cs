@@ -8,6 +8,7 @@ using System;
 using DSharpPlus.Entities;
 using DSharpPlus;
 using MongoDB.Driver;
+using System.Collections.Generic;
 
 namespace SocialGuard.YC
 {
@@ -30,9 +31,9 @@ namespace SocialGuard.YC
 			return config;
 		}
 
-		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser)
+		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser, TrustlistEntry entry = null)
 		{
-			TrustlistEntry entry = trustlistUser?.GetLatestMaxEntry();
+			entry ??= trustlistUser?.GetLatestMaxEntry();
 			(DiscordColor color, string name, string desc) = GetEscalationDescriptions(entry?.EscalationLevel ?? 0);
 
 			DiscordEmbedBuilder builder = new()
@@ -108,5 +109,16 @@ namespace SocialGuard.YC
 			"false" or "no" or "off" or "0" => false,
 			_ => null			
 		};
+
+		public static async IAsyncEnumerable<T> ToAsyncEnumerable<T>(this IAsyncCursor<T> asyncCursor)
+		{
+			while (await asyncCursor.MoveNextAsync())
+			{
+				foreach (var current in asyncCursor.Current)
+				{
+					yield return current;
+				}
+			}
+		}
 	}
 }
