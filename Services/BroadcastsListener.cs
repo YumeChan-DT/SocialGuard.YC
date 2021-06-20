@@ -57,7 +57,7 @@ namespace SocialGuard.YC.Services
 				await BroadcastUpdateAsync(BroadcastUpdateType.Escalation, userId, entry);
 			});
 
-			hubConnection.On<ulong, TrustlistEntry>(deletedEntryMethod, async (userId, entry) =>
+			hubConnection.On<ulong, TrustlistEntry>(deletedEntryMethod, (userId, entry) =>
 			{
 				LogBroadcast(deletedEntryMethod, userId);
 			});

@@ -114,7 +114,7 @@ namespace SocialGuard.YC
 		{
 			while (await asyncCursor.MoveNextAsync())
 			{
-				foreach (var current in asyncCursor.Current)
+				foreach (T current in asyncCursor.Current)
 				{
 					yield return current;
 				}

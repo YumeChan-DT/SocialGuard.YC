@@ -2,14 +2,11 @@
 using Microsoft.Extensions.Logging;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
-using YumeChan.PluginBase.Tools;
-using YumeChan.PluginBase.Tools.Data;
-using System.Net.Http;
-using System.Threading.Tasks;
 using SocialGuard.YC.Services.Security;
-using DSharpPlus;
-using System.Threading;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+using YumeChan.PluginBase.Tools;
 
 namespace SocialGuard.YC
 {
@@ -17,27 +14,24 @@ namespace SocialGuard.YC
 	{
 		public override string PluginDisplayName => "NSYS SocialGuard (YC)";
 		public override bool PluginStealth => false;
-
 		internal const string ApiConfigFileName = "api";
 		
 		private readonly ILogger<PluginManifest> logger;
 		private readonly BroadcastsListener broadcastsListener;
 		private readonly GuildTrafficHandler guildTrafficHandler;
-		private readonly DiscordClient coreClient;
 
 		internal Uri ApiPath { get; private set; }
 		internal static string VersionString { get; private set; }
 
 
-		public PluginManifest(DiscordClient client, ILoggerFactory loggerFactory, BroadcastsListener broadcastsListener, 
-			GuildTrafficHandler guildTrafficHandler, TrustlistUserApiService trustlistUserApiService)
+		public PluginManifest(ILogger<PluginManifest> logger, IConfigProvider<IApiConfig> configProvider, BroadcastsListener broadcastsListener, GuildTrafficHandler guildTrafficHandler)
 		{
 			VersionString ??= PluginVersion;
-			coreClient = client;
-			logger = loggerFactory.CreateLogger<PluginManifest>();
+			this.logger = logger;
 			this.broadcastsListener = broadcastsListener;
 			this.guildTrafficHandler = guildTrafficHandler;
-			ApiPath = trustlistUserApiService.BaseAddress;
+			IApiConfig apiConfig = configProvider.InitConfig(ApiConfigFileName).PopulateApiConfig();
+			ApiPath = new(apiConfig.ApiHost);
 		}
 
 		public override async Task LoadPlugin() 
@@ -74,6 +68,7 @@ namespace SocialGuard.YC
 			.AddSingleton<TrustlistUserApiService>()
 			.AddSingleton<AuthApiService>()
 			.AddSingleton<EncryptionService>()
+//			.AddSingleton((services) => services.GetRequiredService<IConfigProvider<IApiConfig>>().InitConfig(ApiConfigFileName).PopulateApiConfig())
 			;
 	}
 }
