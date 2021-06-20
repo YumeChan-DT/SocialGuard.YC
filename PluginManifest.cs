@@ -2,62 +2,73 @@
 using Microsoft.Extensions.Logging;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
-using Nodsoft.YumeChan.PluginBase.Tools;
-using Nodsoft.YumeChan.PluginBase.Tools.Data;
-using System.Net.Http;
-using System.Threading.Tasks;
 using SocialGuard.YC.Services.Security;
-using DSharpPlus;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using YumeChan.PluginBase.Tools;
 
 namespace SocialGuard.YC
 {
-	public class PluginManifest : Nodsoft.YumeChan.PluginBase.Plugin
+	public class PluginManifest : YumeChan.PluginBase.Plugin
 	{
 		public override string PluginDisplayName => "NSYS SocialGuard (YC)";
 		public override bool PluginStealth => false;
-
 		internal const string ApiConfigFileName = "api";
 		
 		private readonly ILogger<PluginManifest> logger;
-		private readonly DiscordClient coreClient;
+		private readonly BroadcastsListener broadcastsListener;
+		private readonly GuildTrafficHandler guildTrafficHandler;
 
+		internal Uri ApiPath { get; private set; }
 		internal static string VersionString { get; private set; }
 
-		public GuildTrafficHandler GuildTrafficHandler { get; }
 
-
-		public PluginManifest(DiscordClient client, ILogger<PluginManifest> manifestLogger, ILogger<GuildTrafficHandler> trafficLogger,
-			IConfigProvider<IApiConfig> apiConfig, IDatabaseProvider<PluginManifest> database, IHttpClientFactory httpClientFactory)
+		public PluginManifest(ILogger<PluginManifest> logger, IConfigProvider<IApiConfig> configProvider, BroadcastsListener broadcastsListener, GuildTrafficHandler guildTrafficHandler)
 		{
 			VersionString ??= PluginVersion;
-			coreClient = client;
-			logger = manifestLogger;
-
-			TrustlistUserApiService apiService = new(httpClientFactory, apiConfig);
-			GuildTrafficHandler = new(trafficLogger, apiService, database);
+			this.logger = logger;
+			this.broadcastsListener = broadcastsListener;
+			this.guildTrafficHandler = guildTrafficHandler;
+			IApiConfig apiConfig = configProvider.InitConfig(ApiConfigFileName).PopulateApiConfig();
+			ApiPath = new(apiConfig.ApiHost);
 		}
 
 		public override async Task LoadPlugin() 
 		{
-			coreClient.GuildMemberAdded += GuildTrafficHandler.OnMemberJoinedAsync;
+			CancellationToken cancellationToken = CancellationToken.None; // May get added into method parameters later on.
+
+			await broadcastsListener.StartAsync(cancellationToken);
+			await guildTrafficHandler.StartAsync(cancellationToken);
+
 
 			await base.LoadPlugin();
 
-			logger.LogInformation("Loaded {0}.", PluginDisplayName);
+			logger.LogInformation("Loaded {plugin}.", PluginDisplayName);
+			logger.LogInformation("Current SocialGuard API Path: {apiPath}", ApiPath);
 		}
 
 
 		public override async Task UnloadPlugin()
 		{
-			coreClient.GuildMemberAdded -= GuildTrafficHandler.OnMemberJoinedAsync;
+			CancellationToken cancellationToken = CancellationToken.None; // May get added into method parameters later on.	
 
-			logger.LogInformation("Unloaded {0}.", PluginDisplayName);
+			await broadcastsListener.StopAsync(cancellationToken);
+			await guildTrafficHandler.StopAsync(cancellationToken);
+
+			logger.LogInformation("Unloaded {plugin}.", PluginDisplayName);
 			await base.UnloadPlugin();
 		}
 
 		public override IServiceCollection ConfigureServices(IServiceCollection services) => services
+			.AddHostedService<GuildTrafficHandler>()
+			.AddHostedService<BroadcastsListener>()
+			.AddSingleton<GuildTrafficHandler>()
+			.AddSingleton<BroadcastsListener>()
 			.AddSingleton<TrustlistUserApiService>()
 			.AddSingleton<AuthApiService>()
-			.AddSingleton<EncryptionService>();
+			.AddSingleton<EncryptionService>()
+//			.AddSingleton((services) => services.GetRequiredService<IConfigProvider<IApiConfig>>().InitConfig(ApiConfigFileName).PopulateApiConfig())
+			;
 	}
 }

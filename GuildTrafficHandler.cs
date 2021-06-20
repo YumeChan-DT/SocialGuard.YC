@@ -1,27 +1,46 @@
 ﻿using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Data.Models;
 using SocialGuard.YC.Services;
-using Nodsoft.YumeChan.PluginBase.Tools.Data;
+using YumeChan.PluginBase.Tools.Data;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus;
-using System.Linq;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
+using Microsoft.Extensions.Hosting;
+using System.Threading;
 
 namespace SocialGuard.YC
 {
-	public class GuildTrafficHandler
+	public class GuildTrafficHandler : IHostedService
 	{
 		private readonly ILogger<GuildTrafficHandler> logger;
+		private readonly DiscordClient discordClient;
 		private readonly TrustlistUserApiService apiService;
-		private readonly IEntityRepository<GuildConfig, ulong> configRepository;
+		private readonly IMongoCollection<GuildConfig> configRepository;
 
-		public GuildTrafficHandler(ILogger<GuildTrafficHandler> logger, TrustlistUserApiService api, IDatabaseProvider<PluginManifest> database)
+		public GuildTrafficHandler(ILogger<GuildTrafficHandler> logger, DiscordClient discordClient, TrustlistUserApiService api, IDatabaseProvider<PluginManifest> database)
 		{
 			this.logger = logger;
+			this.discordClient = discordClient;
 			apiService = api;
-			configRepository = database.GetEntityRepository<GuildConfig, ulong>();
+			configRepository = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
+		}
+
+		public Task StartAsync(CancellationToken _)
+		{
+			discordClient.GuildMemberAdded += OnMemberJoinedAsync;
+			logger.LogDebug("Hooked SocialGuard Joinlogs.");
+
+			return Task.CompletedTask;
+		}
+		public Task StopAsync(CancellationToken _)
+		{
+			discordClient.GuildMemberAdded -= OnMemberJoinedAsync;
+			logger.LogDebug("Unhooked SocialGuard Joinlogs.");
+
+			return Task.CompletedTask;
 		}
 
 

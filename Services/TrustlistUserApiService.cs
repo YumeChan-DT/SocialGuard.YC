@@ -1,4 +1,4 @@
-﻿using Nodsoft.YumeChan.PluginBase.Tools;
+﻿using YumeChan.PluginBase.Tools;
 using System;
 using System.Net;
 using System.Net.Http;
@@ -16,6 +16,8 @@ namespace SocialGuard.YC.Services
 	{
 		private const string AccessKeyName = "Access-Key";
 		private const string JsonMimeType = "application/json";
+
+		internal Uri BaseAddress => client.BaseAddress;
 
 		private readonly HttpClient client;
 

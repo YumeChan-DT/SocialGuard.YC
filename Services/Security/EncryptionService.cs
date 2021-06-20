@@ -1,4 +1,4 @@
-﻿using Nodsoft.YumeChan.PluginBase.Tools;
+﻿using YumeChan.PluginBase.Tools;
 using System;
 using System.IO;
 using System.Security.Cryptography;

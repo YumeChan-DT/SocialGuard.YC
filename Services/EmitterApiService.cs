@@ -1,4 +1,4 @@
-﻿using Nodsoft.YumeChan.PluginBase.Tools;
+﻿using YumeChan.PluginBase.Tools;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -21,7 +21,7 @@ namespace SocialGuard.YC.Services
 
 		public async Task<Emitter> GetEmitterAsync(AuthToken token)
 		{
-			using HttpRequestMessage request = new(HttpMethod.Get, "/api/v2/emitter");
+			using HttpRequestMessage request = new(HttpMethod.Get, "/api/v3/emitter");
 			request.Headers.Authorization = new("bearer", token.Token);
 
 			using HttpResponseMessage response = await httpClient.SendAsync(request);
@@ -38,7 +38,7 @@ namespace SocialGuard.YC.Services
 
 		public async Task SetEmitterAsync(Emitter emitter, AuthToken token)
 		{
-			using HttpRequestMessage request = new(HttpMethod.Post, "/api/v2/emitter");
+			using HttpRequestMessage request = new(HttpMethod.Post, "/api/v3/emitter");
 			request.Content = JsonContent.Create(emitter);
 			request.Headers.Authorization = new("bearer", token.Token);
 

@@ -1,13 +1,13 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Nodsoft.YumeChan.PluginBase.Tools.Data;
+using YumeChan.PluginBase.Tools.Data;
 using SocialGuard.YC.Data.Components;
 
 
 
 namespace SocialGuard.YC.Data.Models.Config
 {
-	public record GuildConfig : IDocument<ulong>
+	public record GuildConfig
 	{
 		[BsonId, BsonRepresentation(BsonType.Int64)]
 		public ulong Id { get; set; }

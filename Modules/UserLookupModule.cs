@@ -1,7 +1,7 @@
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Data.Models;
 using SocialGuard.YC.Services;
-using Nodsoft.YumeChan.PluginBase.Tools.Data;
+using YumeChan.PluginBase.Tools.Data;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
@@ -10,6 +10,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus;
 using System.Linq;
+using MongoDB.Driver;
 
 namespace SocialGuard.YC.Modules
 {
@@ -19,13 +20,13 @@ namespace SocialGuard.YC.Modules
 		{
 			private readonly TrustlistUserApiService trustlist;
 			private readonly AuthApiService auth;
-			private readonly IEntityRepository<GuildConfig, ulong> repository;
+			private readonly IMongoCollection<GuildConfig> guildConfig;
 
 			public UserLookupModule(TrustlistUserApiService trustlist, AuthApiService auth, IDatabaseProvider<PluginManifest> databaseProvider)
 			{
 				this.trustlist = trustlist;
 				this.auth = auth;
-				repository = databaseProvider.GetEntityRepository<GuildConfig, ulong>();
+				guildConfig = databaseProvider.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 			}
 
 			[Command("lookup"), Aliases("get")]
@@ -69,7 +70,7 @@ namespace SocialGuard.YC.Modules
 				{
 					try
 					{
-						GuildConfig config = await repository.FindOrCreateConfigAsync(context.Guild.Id);
+						GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 
 						if (config.ApiLogin is not null)
 						{
@@ -80,12 +81,14 @@ namespace SocialGuard.YC.Modules
 							}, await auth.GetOrUpdateAuthTokenAsync(context.Guild.Id));
 
 							string userMention = (user as DiscordMember)?.Mention ?? user.Id.ToString();
-							await context.RespondAsync($"User '{userMention}' successfully inserted into Trustlist.", await LookupAsync(user));
+
+							DiscordEmbed embed = await LookupAsync(user);
+							await context.RespondAsync($"User '{userMention}' successfully inserted into Trustlist.", embed);
 
 							if (banUser || (config.AutoBanBlacklisted && level >= 3))
 							{
 								await context.Guild.BanMemberAsync(user.Id, 0, $"[SocialGuard] {reason}");
-								await context.Guild.GetChannel(config.BanLogChannel).SendMessageAsync($"Banned user '{userMention}'.");
+								await context.Guild.GetChannel(config.BanLogChannel).SendMessageAsync($"Banned user '{userMention}'.", embed);
 							}
 						}
 						else

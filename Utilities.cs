@@ -1,6 +1,5 @@
 ﻿using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Data.Models;
-using Nodsoft.YumeChan.PluginBase.Tools.Data;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -8,6 +7,8 @@ using System.Security.Cryptography;
 using System;
 using DSharpPlus.Entities;
 using DSharpPlus;
+using MongoDB.Driver;
+using System.Collections.Generic;
 
 namespace SocialGuard.YC
 {
@@ -30,9 +31,9 @@ namespace SocialGuard.YC
 			return config;
 		}
 
-		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser)
+		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser, TrustlistEntry entry = null)
 		{
-			TrustlistEntry entry = trustlistUser?.GetLatestMaxEntry();
+			entry ??= trustlistUser?.GetLatestMaxEntry();
 			(DiscordColor color, string name, string desc) = GetEscalationDescriptions(entry?.EscalationLevel ?? 0);
 
 			DiscordEmbedBuilder builder = new()
@@ -72,13 +73,13 @@ namespace SocialGuard.YC
 			};
 		}
 
-		public static async Task<GuildConfig> FindOrCreateConfigAsync(this IEntityRepository<GuildConfig, ulong> repository, ulong guildId)
+		public static async Task<GuildConfig> FindOrCreateConfigAsync(this IMongoCollection<GuildConfig> collection, ulong guildId)
 		{
-			GuildConfig config = await repository.FindByIdAsync(guildId);
+			GuildConfig config = (await collection.FindAsync(c => c.Id == guildId)).FirstOrDefault();
 
 			if (config is null)
 			{
-				await repository.InsertOneAsync(config = new() { Id = guildId });
+				await collection.InsertOneAsync(config = new() { Id = guildId });
 			}
 
 			return config;
@@ -108,5 +109,16 @@ namespace SocialGuard.YC
 			"false" or "no" or "off" or "0" => false,
 			_ => null			
 		};
+
+		public static async IAsyncEnumerable<T> ToAsyncEnumerable<T>(this IAsyncCursor<T> asyncCursor)
+		{
+			while (await asyncCursor.MoveNextAsync())
+			{
+				foreach (T current in asyncCursor.Current)
+				{
+					yield return current;
+				}
+			}
+		}
 	}
 }
