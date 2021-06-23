@@ -70,9 +70,8 @@ You can set up your emitter profile automatically to match your server info, usi
 **This command should be repeated whenever a definitive server name change occurs.**
 
 ### Requesting Verification
-With your Emitter profile setup, you can now contact our Maintainers on the [Official NSYS Discord server][https://discord.gg/xV5nFmkbyS] to request Verification for your profile. This will in turn allow you to enter users into the Trustlist using ``==sg add`` & ``sg ban`` commands.
-
-To request verification, you can contact SocialGuard Maintainer **Sakura Isayeki** on Discord : ``Sakura#9999``
+With your Emitter profile setup, you can now contact our Maintainers on the [Official NSYS Discord server](https://discord.gg/xV5nFmkbyS) to request Verification for your profile. This will in turn allow you to enter users into the Trustlist using ``==sg add`` & ``sg ban`` commands.  
+In case of any issues, please contact SocialGuard Maintainer **Sakura Isayeki** on Discord.
 
 
 # Commands
@@ -104,8 +103,8 @@ With this being said, this README file will provide additional context to comman
 | ``register <username> <email> <password>`` | Registers your SocialGuard credentials. __Use this in a private/staff-only channel, as your password will be briefly visible.__ |
 | ``login <username> <password>`` | Sets your SocialGuard credentials for use with your server. __Use this in a private/staff-only channel, as your password will be briefly visible.__ | 
 | ``joinlog <channel>``| Sets the Join-log channel, where all new users will have Trustlist results displayed. |
-| ``banlog <channel>`` | Sets the Ban-log channel, where all SocialGuard-based bans are displayed (from either Auto-ban, or ``==sg ban`` command). |
-| ``autoban <on/off>`` | Will automatically ban all Blacklisted (N+3) users on join, when activated. |
+| ``banlog <channel>`` | Sets the Ban-log channel, where all SocialGuard-based bans and sync warnings are displayed (from either Autoban, Syncing from another server, or ``==sg ban`` command). |
+| ``autoban <on/off>`` | Will automatically ban all Blacklisted (N+3) users on join and on sync, when activated. |
 | ``joinlog-suppress <on/off>`` | Will suppress any new clean (N+0) user record from being sent to the joinlog when activated. |
 
 
@@ -114,3 +113,9 @@ With this being said, this README file will provide additional context to comman
 
 ``==sg emitter info`` Displays Emitter information for your current credentials.  
 ``==sg emitter set-server`` Automatically sets Emitter info for your server. *(Please refresh your Emitter info after a server name change, using this command.)*  
+
+## Debug
+**In case issues arise, these debug commands can prove useful :**
+
+``==sg debug clear-token`` Clears your Auth Token (*Useful in case your token contains an outdated access, or login fails to work.*)  
+``==sg debug force-login`` Forces a new login cycle for your specified credentials.
