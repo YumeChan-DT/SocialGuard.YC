@@ -19,24 +19,24 @@ namespace SocialGuard.YC.Services
 	{
 		private readonly HttpClient httpClient;
 		private readonly EncryptionService encryption;
-		private readonly IMongoCollection<GuildConfig> guildConfigRepository;
+		private readonly IMongoCollection<GuildConfig> guildConfig;
 
 		public AuthApiService(IHttpClientFactory httpFactory, IConfigProvider<IApiConfig> configProvider, EncryptionService encryption, IDatabaseProvider<PluginManifest> database)
 		{
 			httpClient = httpFactory.CreateClient(nameof(PluginManifest));
 			httpClient.BaseAddress = new(configProvider.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig().ApiHost);
 			this.encryption = encryption;
-			guildConfigRepository = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
+			guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 		}
 
 
 		public async Task<AuthToken> GetOrUpdateAuthTokenAsync(ulong guildId)
 		{
-			AuthCredentials login = (await guildConfigRepository.FindOrCreateConfigAsync(guildId)).ApiLogin 
+			AuthCredentials login = (await guildConfig.FindOrCreateConfigAsync(guildId)).ApiLogin 
 				?? throw new ApplicationException("Guild must first set API login (username/password).");
-			GuildConfig config = await guildConfigRepository.FindOrCreateConfigAsync(guildId);
+			GuildConfig config = await guildConfig.FindOrCreateConfigAsync(guildId);
 
-			if (config.Token is AuthToken token and not null && token.IsValid())
+			if (config.Token is AuthToken token && token.IsValid())
 			{
 				return token;
 			}
@@ -57,12 +57,25 @@ namespace SocialGuard.YC.Services
 				{
 					token = (await response.Content.ReadFromJsonAsync<AuthResponse<AuthToken>>(Utilities.SerializerOptions)).Details;
 
-					await guildConfigRepository.UpdateOneAsync(
+					await guildConfig.UpdateOneAsync(
 						Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
 						Builders<GuildConfig>.Update.Set(c => c.Token, token));
 
 					return token;
 				}
+			}
+		}
+
+		public async Task ClearTokenAsync(ulong guildId)
+		{
+			GuildConfig config = await guildConfig.FindOrCreateConfigAsync(guildId);
+
+			if (config.Token is not null)
+			{
+				await guildConfig.UpdateOneAsync(
+					Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
+					Builders<GuildConfig>.Update.Set(c => c.Token, null)
+				);
 			}
 		}
 
