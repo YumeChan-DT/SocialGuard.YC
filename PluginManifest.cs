@@ -6,16 +6,17 @@ using SocialGuard.YC.Services.Security;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using YumeChan.PluginBase;
 using YumeChan.PluginBase.Tools;
 
 namespace SocialGuard.YC
 {
-	public class PluginManifest : YumeChan.PluginBase.Plugin
+	public class PluginManifest : Plugin
 	{
 		public override string PluginDisplayName => "NSYS SocialGuard (YC)";
 		public override bool PluginStealth => false;
 		internal const string ApiConfigFileName = "api";
-		
+
 		private readonly ILogger<PluginManifest> logger;
 		private readonly BroadcastsListener broadcastsListener;
 		private readonly GuildTrafficHandler guildTrafficHandler;
@@ -34,7 +35,7 @@ namespace SocialGuard.YC
 			ApiPath = new(apiConfig.ApiHost);
 		}
 
-		public override async Task LoadPlugin() 
+		public override async Task LoadPlugin()
 		{
 			CancellationToken cancellationToken = CancellationToken.None; // May get added into method parameters later on.
 
@@ -51,7 +52,7 @@ namespace SocialGuard.YC
 
 		public override async Task UnloadPlugin()
 		{
-			CancellationToken cancellationToken = CancellationToken.None; // May get added into method parameters later on.	
+			CancellationToken cancellationToken = CancellationToken.None; // May get added into method parameters later on.
 
 			await broadcastsListener.StopAsync(cancellationToken);
 			await guildTrafficHandler.StopAsync(cancellationToken);
@@ -59,7 +60,10 @@ namespace SocialGuard.YC
 			logger.LogInformation("Unloaded {plugin}.", PluginDisplayName);
 			await base.UnloadPlugin();
 		}
+	}
 
+	public class DependencyRegistrations : InjectionRegistry
+	{
 		public override IServiceCollection ConfigureServices(IServiceCollection services) => services
 			.AddHostedService<GuildTrafficHandler>()
 			.AddHostedService<BroadcastsListener>()
