@@ -24,7 +24,7 @@ namespace SocialGuard.YC.Services
 		private readonly HubConnection hubConnection;
 		private readonly IMongoCollection<GuildConfig> guildConfig;
 
-		public BroadcastsListener(ILogger<BroadcastsListener> logger, IConfigProvider<IApiConfig> configProvider, 
+		public BroadcastsListener(ILogger<BroadcastsListener> logger, IConfigProvider<IApiConfig> configProvider,
 			DiscordClient discordClient, IDatabaseProvider<PluginManifest> database, TrustlistUserApiService trustlistUserApiService)
 		{
 			IApiConfig config = configProvider.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig();
@@ -86,9 +86,9 @@ namespace SocialGuard.YC.Services
 			logger.LogInformation("Stopped Trustlist Hub connection (Connection ID {id}; State {state})", hubConnection.ConnectionId, hubConnection.State);
 			await hubConnection.DisposeAsync();
 		}
-		
 
-		internal async Task BroadcastUpdateAsync(BroadcastUpdateType type, ulong userId, TrustlistEntry entry)
+
+		protected async Task BroadcastUpdateAsync(BroadcastUpdateType type, ulong userId, TrustlistEntry entry)
 		{
 			TrustlistUser trustlistUser = null;
 			DiscordEmbed embed = null;
@@ -106,7 +106,7 @@ namespace SocialGuard.YC.Services
 						trustlistUser ??= await trustlistUserApiService.LookupUserAsync(userId);
 						embed ??= Utilities.BuildUserRecordEmbed(trustlistUser, member, entry);
 						DiscordChannel actionLogChannel = guild.GetChannel(guildConfig.BanLogChannel is not 0 ? guildConfig.BanLogChannel : guildConfig.JoinLogChannel);
-						
+
 						await actionLogChannel.SendMessageAsync(embed: embed, content: type switch
 						{
 							BroadcastUpdateType.NewEntry => $"New Entry added by Emitter **{entry.Emitter.DisplayName}** (`{entry.Emitter.Login}`) for user {member.Mention} :",
@@ -130,10 +130,10 @@ namespace SocialGuard.YC.Services
 		}
 	}
 
-	internal enum BroadcastUpdateType
+	public enum BroadcastUpdateType
 	{
-		NewEntry, 
-		Escalation, 
+		NewEntry,
+		Escalation,
 		Removal
 	}
 }

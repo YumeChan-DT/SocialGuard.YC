@@ -65,8 +65,6 @@ namespace SocialGuard.YC
 	public class DependencyRegistrations : InjectionRegistry
 	{
 		public override IServiceCollection ConfigureServices(IServiceCollection services) => services
-			.AddHostedService<GuildTrafficHandler>()
-			.AddHostedService<BroadcastsListener>()
 			.AddSingleton<GuildTrafficHandler>()
 			.AddSingleton<BroadcastsListener>()
 			.AddSingleton<TrustlistUserApiService>()
