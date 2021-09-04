@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -26,7 +26,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
-    <PackageReference Include="YumeChan.PluginBase" Version="2.3.0">
+    <PackageReference Include="YumeChan.PluginBase" Version="2.4.3">
       <IncludeAssets></IncludeAssets>
     </PackageReference>
   </ItemGroup>
