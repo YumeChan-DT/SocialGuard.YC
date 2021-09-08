@@ -2,7 +2,7 @@
 
 namespace SocialGuard.YC.Data.Components
 {
-	public record AuthToken(string Token, DateTime Expiration) : IAuthComponent
+	public sealed record AuthToken(string Token, DateTime Expiration) : IAuthComponent
 	{
 		public bool IsValid() => Expiration > DateTime.UtcNow;
 	};

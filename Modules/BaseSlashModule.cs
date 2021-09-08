@@ -3,5 +3,5 @@
 namespace SocialGuard.YC.Modules
 {
 	[SlashCommandGroup("socialguard", "Provides SocialGuard commands & integration.")]
-	public partial class BaseSlashModule : ApplicationCommandModule { }
+	public sealed partial class BaseSlashModule : ApplicationCommandModule { }
 }

@@ -11,7 +11,8 @@ using SocialGuard.YC.Services.Security;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using MongoDB.Driver;
-using Newtonsoft.Json.Linq;
+
+
 
 namespace SocialGuard.YC.Modules
 {
@@ -109,14 +110,14 @@ namespace SocialGuard.YC.Modules
 
 				await context.RespondAsync($"Auto-ban Blacklist has been turned **{(config.AutoBanBlacklisted ? "on" : "off")}**.");
 			}
-			
+
 			[Command("joinlog-suppress"), RequireUserPermissions(Permissions.ManageGuild)]
 			public async Task JoinlogSuppressAsync(CommandContext context)
 			{
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 
-				await context.RespondAsync(config.SuppressJoinlogCleanRecords 
-					? "All clean records are currently suppressed from displaying in Joinlog." 
+				await context.RespondAsync(config.SuppressJoinlogCleanRecords
+					? "All clean records are currently suppressed from displaying in Joinlog."
 					: "All records are displayed in Joinlog.");
 			}
 			[Command("joinlog-suppress")]
