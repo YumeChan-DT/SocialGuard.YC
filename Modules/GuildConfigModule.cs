@@ -45,12 +45,7 @@ namespace SocialGuard.YC.Modules
 			{
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 				config.JoinLogChannel = channel.Id;
-
-				await guildConfig.UpdateOneAsync(
-					Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
-					Builders<GuildConfig>.Update.Set(c => c.JoinLogChannel, config.JoinLogChannel));
-
-
+				await guildConfig.SetJoinlogAsync(config);
 				await context.RespondAsync($"Join Log channel set to : {context.Guild.GetChannel(config.JoinLogChannel).Mention}.");
 			}
 
@@ -67,12 +62,7 @@ namespace SocialGuard.YC.Modules
 			{
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 				config.BanLogChannel = channel.Id;
-
-				await guildConfig.UpdateOneAsync(
-					Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
-					Builders<GuildConfig>.Update.Set(c => c.BanLogChannel, config.BanLogChannel));
-
-
+				await guildConfig.SetBanlogAsync(config);
 				await context.RespondAsync($"Join Ban channel set to : {context.Guild.GetChannel(config.BanLogChannel).Mention}.");
 			}
 
@@ -85,9 +75,7 @@ namespace SocialGuard.YC.Modules
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 				config.ApiLogin = new(username, encryption.Encrypt(password));
 
-				await guildConfig.UpdateOneAsync(
-					Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
-					Builders<GuildConfig>.Update.Set(c => c.ApiLogin, config.ApiLogin));
+				await guildConfig.SetLoginAsync(config);
 
 				await context.Channel.SendMessageAsync($"API credentials has been set.");
 			}
@@ -103,11 +91,7 @@ namespace SocialGuard.YC.Modules
 			{
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 				config.AutoBanBlacklisted = Utilities.ParseBoolParameter(key) ?? config.AutoBanBlacklisted;
-
-				await guildConfig.UpdateOneAsync(
-					Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
-					Builders<GuildConfig>.Update.Set(c => c.AutoBanBlacklisted, config.AutoBanBlacklisted));
-
+				await guildConfig.SetAutobanAsync(config);
 				await context.RespondAsync($"Auto-ban Blacklist has been turned **{(config.AutoBanBlacklisted ? "on" : "off")}**.");
 			}
 
@@ -125,11 +109,7 @@ namespace SocialGuard.YC.Modules
 			{
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 				config.SuppressJoinlogCleanRecords = Utilities.ParseBoolParameter(key) ?? config.SuppressJoinlogCleanRecords;
-
-				await guildConfig.UpdateOneAsync(
-					Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
-					Builders<GuildConfig>.Update.Set(c => c.SuppressJoinlogCleanRecords, config.SuppressJoinlogCleanRecords));
-
+				await guildConfig.SetJoinlogSuppressionAsync(config);
 
 				await context.RespondAsync(config.SuppressJoinlogCleanRecords
 					? "All clean records will now be suppressed from displaying in Joinlog."

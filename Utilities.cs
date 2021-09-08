@@ -34,7 +34,7 @@ namespace SocialGuard.YC
 		}
 
 		public static async Task<DiscordEmbed> GetLookupEmbedAsync(this TrustlistUserApiService trustlist, DiscordUser user)
-			=> Utilities.BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
+			=> BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
 
 		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser, TrustlistEntry entry = null)
 		{
@@ -77,19 +77,6 @@ namespace SocialGuard.YC
 				>= 3 => (DiscordColor.Red, "Blacklisted", "This user is dangerous and has been blacklisted. Banning this user is greatly advised.")
 			};
 		}
-
-		public static async Task<GuildConfig> FindOrCreateConfigAsync(this IMongoCollection<GuildConfig> collection, ulong guildId)
-		{
-			GuildConfig config = (await collection.FindAsync(c => c.Id == guildId)).FirstOrDefault();
-
-			if (config is null)
-			{
-				await collection.InsertOneAsync(config = new() { Id = guildId });
-			}
-
-			return config;
-		}
-
 
 		internal static string GenerateLocalMasterKey()
 		{
