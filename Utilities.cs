@@ -9,6 +9,8 @@ using DSharpPlus.Entities;
 using DSharpPlus;
 using MongoDB.Driver;
 using System.Collections.Generic;
+using SocialGuard.YC.Services;
+using DSharpPlus.SlashCommands;
 
 namespace SocialGuard.YC
 {
@@ -30,6 +32,9 @@ namespace SocialGuard.YC
 
 			return config;
 		}
+
+		public static async Task<DiscordEmbed> GetLookupEmbedAsync(this TrustlistUserApiService trustlist, DiscordUser user)
+			=> Utilities.BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
 
 		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser, TrustlistEntry entry = null)
 		{
@@ -120,5 +125,8 @@ namespace SocialGuard.YC
 				}
 			}
 		}
+
+		public static Task<DiscordMessage> FollowUpAsync(this BaseContext ctx, string content, bool isEphemeral = false)
+			=> ctx.FollowUpAsync(new() { Content = content, IsEphemeral = isEphemeral });
 	}
 }

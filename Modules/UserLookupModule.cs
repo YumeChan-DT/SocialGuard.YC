@@ -38,7 +38,7 @@ namespace SocialGuard.YC.Modules
 				await InsertUserAsync(context, user, level, reason, false);
 			}
 
-			[Command("ban"), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers)]
+			[Command("ban"), RequireGuild, RequirePermissions(Permissions.BanMembers)]
 			public async Task BanUserAsync(CommandContext context, DiscordUser user, [Range(0, 3)] byte level, [RemainingText] string reason)
 			{
 				await InsertUserAsync(context, user, level, reason, true);
@@ -82,7 +82,7 @@ namespace SocialGuard.YC.Modules
 
 							string userMention = (user as DiscordMember)?.Mention ?? user.Id.ToString();
 
-							DiscordEmbed embed = await LookupAsync(user);
+							DiscordEmbed embed = await trustlist.GetLookupEmbedAsync(user);
 							await context.RespondAsync($"User '{userMention}' successfully inserted into Trustlist.", embed);
 
 							if (banUser || (config.AutoBanBlacklisted && level >= 3))
@@ -116,7 +116,7 @@ namespace SocialGuard.YC.Modules
 				}
 			}
 
-			public async Task<DiscordEmbed> LookupAsync(DiscordUser user) => Utilities.BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
+
 		}
 	}
 }
