@@ -16,13 +16,13 @@ namespace SocialGuard.YC.Modules
 {
 	public partial class BaseModule
 	{
-		public class UserLookupModule : BaseCommandModule
+		public class TrustlistModule : BaseCommandModule
 		{
 			private readonly TrustlistUserApiService trustlist;
 			private readonly AuthApiService auth;
 			private readonly IMongoCollection<GuildConfig> guildConfig;
 
-			public UserLookupModule(TrustlistUserApiService trustlist, AuthApiService auth, IDatabaseProvider<PluginManifest> databaseProvider)
+			public TrustlistModule(TrustlistUserApiService trustlist, AuthApiService auth, IDatabaseProvider<PluginManifest> databaseProvider)
 			{
 				this.trustlist = trustlist;
 				this.auth = auth;
@@ -49,20 +49,16 @@ namespace SocialGuard.YC.Modules
 				if (user?.Id == context.User.Id)
 				{
 					await context.RespondAsync("You cannot insert yourself in the Trustlist.");
-					return;
 				}
 				else if (user.IsBot)
 				{
 					await context.RespondAsync("You cannot insert a Bot in the Trustlist.");
-					return;
 				}
 				else if ((user as DiscordMember)?.Roles.Any(r => r.Permissions == (r.Permissions & Permissions.ManageGuild)) ?? false)
 				{
 					await context.RespondAsync("You cannot insert a server operator in the Trustlist. Demote them first.");
-					return;
 				}
-
-				if (reason.Length < 5)
+				else if (reason.Length < 5)
 				{
 					await context.RespondAsync("Reason is too short");
 				}

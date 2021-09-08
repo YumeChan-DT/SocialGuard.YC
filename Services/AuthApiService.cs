@@ -32,9 +32,8 @@ namespace SocialGuard.YC.Services
 
 		public async Task<AuthToken> GetOrUpdateAuthTokenAsync(ulong guildId)
 		{
-			AuthCredentials login = (await guildConfig.FindOrCreateConfigAsync(guildId)).ApiLogin 
-				?? throw new ApplicationException("Guild must first set API login (username/password).");
 			GuildConfig config = await guildConfig.FindOrCreateConfigAsync(guildId);
+			AuthCredentials login = config.ApiLogin	?? throw new ApplicationException("Guild must first set API login (username/password).");
 
 			if (config.Token is AuthToken token && token.IsValid())
 			{
