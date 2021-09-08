@@ -20,17 +20,20 @@ namespace SocialGuard.YC
 		private readonly ILogger<PluginManifest> logger;
 		private readonly BroadcastsListener broadcastsListener;
 		private readonly GuildTrafficHandler guildTrafficHandler;
+		private readonly ComponentInteractionsListener componentInteractionsListener;
 
 		internal Uri ApiPath { get; private set; }
 		internal static string VersionString { get; private set; }
 
 
-		public PluginManifest(ILogger<PluginManifest> logger, IConfigProvider<IApiConfig> configProvider, BroadcastsListener broadcastsListener, GuildTrafficHandler guildTrafficHandler)
+		public PluginManifest(ILogger<PluginManifest> logger, IConfigProvider<IApiConfig> configProvider,
+			BroadcastsListener broadcastsListener, GuildTrafficHandler guildTrafficHandler, ComponentInteractionsListener componentInteractionsListener)
 		{
 			VersionString ??= Version;
 			this.logger = logger;
 			this.broadcastsListener = broadcastsListener;
 			this.guildTrafficHandler = guildTrafficHandler;
+			this.componentInteractionsListener = componentInteractionsListener;
 			IApiConfig apiConfig = configProvider.InitConfig(ApiConfigFileName).PopulateApiConfig();
 			ApiPath = new(apiConfig.ApiHost);
 		}
@@ -39,6 +42,7 @@ namespace SocialGuard.YC
 		{
 			CancellationToken cancellationToken = CancellationToken.None; // May get added into method parameters later on.
 
+			await componentInteractionsListener.StartAsync(cancellationToken);
 			await broadcastsListener.StartAsync(cancellationToken);
 			await guildTrafficHandler.StartAsync(cancellationToken);
 
@@ -54,6 +58,7 @@ namespace SocialGuard.YC
 		{
 			CancellationToken cancellationToken = CancellationToken.None; // May get added into method parameters later on.
 
+			await componentInteractionsListener.StopAsync(cancellationToken);
 			await broadcastsListener.StopAsync(cancellationToken);
 			await guildTrafficHandler.StopAsync(cancellationToken);
 
@@ -67,6 +72,7 @@ namespace SocialGuard.YC
 		public override IServiceCollection ConfigureServices(IServiceCollection services) => services
 			.AddSingleton<GuildTrafficHandler>()
 			.AddSingleton<BroadcastsListener>()
+			.AddSingleton<ComponentInteractionsListener>()
 			.AddSingleton<TrustlistUserApiService>()
 			.AddSingleton<AuthApiService>()
 			.AddSingleton<EncryptionService>()

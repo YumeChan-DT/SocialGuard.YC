@@ -12,6 +12,9 @@ using SocialGuard.YC.Data.Components;
 using SocialGuard.YC.Data.Models.Api;
 using DSharpPlus.Entities;
 using System.Collections.Generic;
+using System.Linq;
+using DSharpPlus.CommandsNext.Attributes;
+using System;
 
 namespace SocialGuard.YC.Modules
 {
@@ -62,6 +65,33 @@ namespace SocialGuard.YC.Modules
 
 				await ctx.FollowUpAsync($"{ctx.User.Mention} {result.Status} : {result.Message}\n");
 			}
+
+			[SlashCommand("joinlog", "Configures the Join-log channel."), RequireBotPermissions(Permissions.SendMessages)]
+			public async Task ConfigureJoinlogAsync(InteractionContext ctx)
+			{
+				await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new() { IsEphemeral = true });
+
+				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(ctx.Guild.Id);
+				DiscordChannel current = ctx.Guild.GetChannel(config.JoinLogChannel);
+
+				try
+				{
+					await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder() { Content = $"Current Join Log channel : {current?.Mention ?? "None"}." }
+								.AddComponents(new DiscordSelectComponent("sg-joinlog-select", "Select Joinlog channel", GetWritableChannelOptions(ctx.Guild), maxOptions: 1))
+							);
+				}
+				catch (Exception e)
+				{
+
+					throw;
+				}
+			}
+
+			protected static IEnumerable<DiscordSelectComponentOption> GetWritableChannelOptions(DiscordGuild guild) =>
+				from c in guild.Channels.Values
+				where c.Type is ChannelType.Text
+				where c.PermissionsFor(guild.CurrentMember).HasPermission(Permissions.AccessChannels | Permissions.SendMessages)
+				select new DiscordSelectComponentOption('#' + c.Name, c.Id.ToString(), c.Parent?.Name);
 		}
 	}
 }
