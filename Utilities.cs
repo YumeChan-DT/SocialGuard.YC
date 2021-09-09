@@ -115,5 +115,22 @@ namespace SocialGuard.YC
 
 		public static Task<DiscordMessage> FollowUpAsync(this BaseContext ctx, string content, bool isEphemeral = false)
 			=> ctx.FollowUpAsync(new() { Content = content, IsEphemeral = isEphemeral });
+
+
+		public static DiscordEmbed BuildEmitterEmbed(Emitter emitter) => new DiscordEmbedBuilder()
+			.WithTitle("Emitter Info")
+			.WithDescription(emitter.DisplayName)
+			.AddField("Username", emitter.Login)
+			.AddField("Type", EmitterTypeToString(emitter.EmitterType), true)
+			.AddField("Discord ID", emitter.Snowflake is 0 ? "N/A" : emitter.Snowflake.ToString(), true)
+			.WithFooter(SignatureFooter)
+			.Build();
+
+		public static string EmitterTypeToString(EmitterType type) => type switch
+		{
+			EmitterType.User => "User",
+			EmitterType.Server => "Server",
+			_ => "Unknown"
+		};
 	}
 }
