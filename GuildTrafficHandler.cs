@@ -50,7 +50,7 @@ namespace SocialGuard.YC
 
 			if (config.JoinLogChannel is not 0)
 			{
-				logger.LogDebug("Fetching Joinlog record for user {0} in guild {1}.", e.Member.Id, e.Guild.Id);
+				logger.LogDebug("Fetching Joinlog record for user {userId} in guild {guildId}.", e.Member.Id, e.Guild.Id);
 
 				TrustlistUser user = await apiService.LookupUserAsync(e.Member.Id);
 				TrustlistEntry entry = user?.GetLatestMaxEntry();
@@ -59,7 +59,7 @@ namespace SocialGuard.YC
 
 				if (maxEscalation is 0 && config.SuppressJoinlogCleanRecords)
 				{
-					logger.LogDebug("Suppressed clean record for user {0} in guild {1}.", e.Member.Id, e.Guild.Id);
+					logger.LogDebug("Suppressed clean record for user {userId} in guild {guildId}.", e.Member.Id, e.Guild.Id);
 				}
 				else
 				{
