@@ -63,7 +63,7 @@ namespace SocialGuard.YC.Modules
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 				config.BanLogChannel = channel.Id;
 				await guildConfig.SetBanlogAsync(config);
-				await context.RespondAsync($"Join Ban channel set to : {context.Guild.GetChannel(config.BanLogChannel).Mention}.");
+				await context.RespondAsync($"Ban Log channel set to : {context.Guild.GetChannel(config.BanLogChannel).Mention}.");
 			}
 
 

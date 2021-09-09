@@ -23,6 +23,8 @@ namespace SocialGuard.YC.Modules
 		[SlashCommandGroup("config", "Provides configuration for SocialGuard integration"), SlashRequireGuild, SlashRequireUserPermissions(Permissions.ManageGuild)]
 		public class GuildConfigSlashModule : ApplicationCommandModule
 		{
+			internal static DiscordSelectComponentOption EmptySelectionOption { get; } = new("None", "0", null, true);
+
 			private readonly IMongoCollection<GuildConfig> guildConfig;
 			private readonly AuthApiService auth;
 			private readonly EncryptionService encryption;
@@ -74,24 +76,66 @@ namespace SocialGuard.YC.Modules
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(ctx.Guild.Id);
 				DiscordChannel current = ctx.Guild.GetChannel(config.JoinLogChannel);
 
-				try
-				{
-					await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder() { Content = $"Current Join Log channel : {current?.Mention ?? "None"}." }
-								.AddComponents(new DiscordSelectComponent("sg-joinlog-select", "Select Joinlog channel", GetWritableChannelOptions(ctx.Guild), maxOptions: 1))
-							);
-				}
-				catch (Exception e)
-				{
+				await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder() { Content = $"Current Joinlog channel : {current?.Mention ?? "None"}." }
+					.AddComponents(new DiscordSelectComponent("sg-joinlog-select", "Select Joinlog channel",
+						GetWritableChannelOptions(ctx.Guild).Prepend(EmptySelectionOption), maxOptions: 1)));
+			}
 
-					throw;
+			[SlashCommand("banlog", "Configures the Banlog channel."), RequireBotPermissions(Permissions.SendMessages)]
+			public async Task ConfigureBanlogAsync(InteractionContext ctx)
+			{
+				await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new() { IsEphemeral = true });
+
+				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(ctx.Guild.Id);
+				DiscordChannel current = ctx.Guild.GetChannel(config.JoinLogChannel);
+
+				await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder() { Content = $"Current Banlog channel : {current?.Mention ?? "None"}." }
+					.AddComponents(new DiscordSelectComponent("sg-banlog-select", "Select Banlog channel",
+						GetWritableChannelOptions(ctx.Guild).Prepend(EmptySelectionOption), maxOptions: 1)));
+			}
+
+
+			[SlashCommand("autoban", "Configures the auto-ban mechanism on Blacklist/N+3 entries.")]
+			public async Task ConfigureAutobanAsync(InteractionContext ctx)
+			{
+				await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new() { IsEphemeral = true });
+
+				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(ctx.Guild.Id);
+				DiscordChannel current = ctx.Guild.GetChannel(config.JoinLogChannel);
+
+				await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder() { Content = $"Autoban is currently {(config.AutoBanBlacklisted ? "on" : "off")}." }
+					.AddComponents(new DiscordSelectComponent("sg-autoban-select", "Turn Autoban on/off", GetToggleOptions(), maxOptions: 1)));
+			}
+
+			[SlashCommand("joinlog-suppress", "Configures the Joinlog suppression on Clean/empty records.")]
+			public async Task ConfigureJoinlogSuppressAsync(InteractionContext ctx)
+			{
+				await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new() { IsEphemeral = true });
+
+				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(ctx.Guild.Id);
+				DiscordChannel current = ctx.Guild.GetChannel(config.JoinLogChannel);
+
+				await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+				{
+					Content = config.SuppressJoinlogCleanRecords
+						? "All clean records are currently suppressed from displaying in Joinlog."
+						: "All records are displayed in Joinlog."
 				}
+					.AddComponents(new DiscordSelectComponent("sg-joinlog-suppress-select", "Turn Autoban on/off", GetToggleOptions(), maxOptions: 1)));
 			}
 
 			protected static IEnumerable<DiscordSelectComponentOption> GetWritableChannelOptions(DiscordGuild guild) =>
-				from c in guild.Channels.Values
+				(from c in guild.Channels.Values
 				where c.Type is ChannelType.Text
 				where c.PermissionsFor(guild.CurrentMember).HasPermission(Permissions.AccessChannels | Permissions.SendMessages)
-				select new DiscordSelectComponentOption('#' + c.Name, c.Id.ToString(), c.Parent?.Name);
+				select new DiscordSelectComponentOption('#' + c.Name, c.Id.ToString(), c.Parent?.Name))
+				.OrderBy(c => c.Description).ThenBy(c => c.Label);
+
+			protected static IEnumerable<DiscordSelectComponentOption> GetToggleOptions() => new DiscordSelectComponentOption[]
+			{
+				new("On", "1"),
+				new("Off", "0")
+			};
 		}
 	}
 }
