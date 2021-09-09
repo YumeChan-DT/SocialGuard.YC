@@ -35,7 +35,7 @@ namespace SocialGuard.YC.Modules
 			public Task LookupSlashAsync(InteractionContext ctx, [Option("user", "User to lookup")] DiscordUser user) => LookupAsync(ctx, user);
 
 			[ContextMenu(ApplicationCommandType.UserContextMenu, "SocialGuard Lookup")]
-			public Task LookupContextAsync(ContextMenuContext ctx) => LookupAsync(ctx, ctx.User);
+			public Task LookupContextAsync(ContextMenuContext ctx) => LookupAsync(ctx, ctx.TargetUser);
 
 			[SlashCommand("add", "Inserts/Updates an entry in the Trustlist."), SlashRequireGuild, SlashRequireUserPermissions(Permissions.BanMembers)]
 			public async Task AddAsync(InteractionContext ctx,
