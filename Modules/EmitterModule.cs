@@ -46,7 +46,7 @@ namespace SocialGuard.YC.Modules
 				}
 				else
 				{
-					await context.RespondAsync(embed: BuildEmitterEmbed(emitter));
+					await context.RespondAsync(embed: Utilities.BuildEmitterEmbed(emitter));
 				}
 			}
 
@@ -68,26 +68,9 @@ namespace SocialGuard.YC.Modules
 					Snowflake = context.Guild.Id
 				}, await authService.GetOrUpdateAuthTokenAsync(context.Guild.Id));
 
-				await context.RespondAsync(
-					"Emitter successfully set :",
-					embed: BuildEmitterEmbed(await emitterService.GetEmitterAsync(await authService.GetOrUpdateAuthTokenAsync(context.Guild.Id))));
+				await context.RespondAsync("Emitter successfully set :",
+					Utilities.BuildEmitterEmbed(await emitterService.GetEmitterAsync(await authService.GetOrUpdateAuthTokenAsync(context.Guild.Id))));
 			}
-
-			public static DiscordEmbed BuildEmitterEmbed(Emitter emitter) => new DiscordEmbedBuilder()
-						.WithTitle("Emitter Info")
-						.WithDescription(emitter.DisplayName)
-						.AddField("Username", emitter.Login)
-						.AddField("Type", EmitterTypeToString(emitter.EmitterType), true)
-						.AddField("Discord ID", emitter.Snowflake is 0 ? "N/A" : emitter.Snowflake.ToString(), true)
-						.WithFooter(Utilities.SignatureFooter)
-						.Build();
-
-			public static string EmitterTypeToString(EmitterType type) => type switch
-			{
-				EmitterType.User => "User",
-				EmitterType.Server => "Server",
-				_ => "Unknown"
-			};
 		}
 	}
 }

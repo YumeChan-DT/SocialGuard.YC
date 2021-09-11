@@ -16,13 +16,13 @@ namespace SocialGuard.YC.Modules
 {
 	public partial class BaseModule
 	{
-		public class UserLookupModule : BaseCommandModule
+		public class TrustlistModule : BaseCommandModule
 		{
 			private readonly TrustlistUserApiService trustlist;
 			private readonly AuthApiService auth;
 			private readonly IMongoCollection<GuildConfig> guildConfig;
 
-			public UserLookupModule(TrustlistUserApiService trustlist, AuthApiService auth, IDatabaseProvider<PluginManifest> databaseProvider)
+			public TrustlistModule(TrustlistUserApiService trustlist, AuthApiService auth, IDatabaseProvider<PluginManifest> databaseProvider)
 			{
 				this.trustlist = trustlist;
 				this.auth = auth;
@@ -38,7 +38,7 @@ namespace SocialGuard.YC.Modules
 				await InsertUserAsync(context, user, level, reason, false);
 			}
 
-			[Command("ban"), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers)]
+			[Command("ban"), RequireGuild, RequirePermissions(Permissions.BanMembers)]
 			public async Task BanUserAsync(CommandContext context, DiscordUser user, [Range(0, 3)] byte level, [RemainingText] string reason)
 			{
 				await InsertUserAsync(context, user, level, reason, true);
@@ -49,20 +49,16 @@ namespace SocialGuard.YC.Modules
 				if (user?.Id == context.User.Id)
 				{
 					await context.RespondAsync("You cannot insert yourself in the Trustlist.");
-					return;
 				}
 				else if (user.IsBot)
 				{
 					await context.RespondAsync("You cannot insert a Bot in the Trustlist.");
-					return;
 				}
 				else if ((user as DiscordMember)?.Roles.Any(r => r.Permissions == (r.Permissions & Permissions.ManageGuild)) ?? false)
 				{
 					await context.RespondAsync("You cannot insert a server operator in the Trustlist. Demote them first.");
-					return;
 				}
-
-				if (reason.Length < 5)
+				else if (reason.Length < 5)
 				{
 					await context.RespondAsync("Reason is too short");
 				}
@@ -82,7 +78,7 @@ namespace SocialGuard.YC.Modules
 
 							string userMention = (user as DiscordMember)?.Mention ?? user.Id.ToString();
 
-							DiscordEmbed embed = await LookupAsync(user);
+							DiscordEmbed embed = await trustlist.GetLookupEmbedAsync(user);
 							await context.RespondAsync($"User '{userMention}' successfully inserted into Trustlist.", embed);
 
 							if (banUser || (config.AutoBanBlacklisted && level >= 3))
@@ -116,7 +112,7 @@ namespace SocialGuard.YC.Modules
 				}
 			}
 
-			public async Task<DiscordEmbed> LookupAsync(DiscordUser user) => Utilities.BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
+
 		}
 	}
 }

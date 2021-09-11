@@ -11,7 +11,8 @@ using SocialGuard.YC.Services.Security;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using MongoDB.Driver;
-using Newtonsoft.Json.Linq;
+
+
 
 namespace SocialGuard.YC.Modules
 {
@@ -44,12 +45,7 @@ namespace SocialGuard.YC.Modules
 			{
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 				config.JoinLogChannel = channel.Id;
-
-				await guildConfig.UpdateOneAsync(
-					Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
-					Builders<GuildConfig>.Update.Set(c => c.JoinLogChannel, config.JoinLogChannel));
-
-
+				await guildConfig.SetJoinlogAsync(config);
 				await context.RespondAsync($"Join Log channel set to : {context.Guild.GetChannel(config.JoinLogChannel).Mention}.");
 			}
 
@@ -66,13 +62,8 @@ namespace SocialGuard.YC.Modules
 			{
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 				config.BanLogChannel = channel.Id;
-
-				await guildConfig.UpdateOneAsync(
-					Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
-					Builders<GuildConfig>.Update.Set(c => c.BanLogChannel, config.BanLogChannel));
-
-
-				await context.RespondAsync($"Join Ban channel set to : {context.Guild.GetChannel(config.BanLogChannel).Mention}.");
+				await guildConfig.SetBanlogAsync(config);
+				await context.RespondAsync($"Ban Log channel set to : {context.Guild.GetChannel(config.BanLogChannel).Mention}.");
 			}
 
 
@@ -84,9 +75,7 @@ namespace SocialGuard.YC.Modules
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 				config.ApiLogin = new(username, encryption.Encrypt(password));
 
-				await guildConfig.UpdateOneAsync(
-					Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
-					Builders<GuildConfig>.Update.Set(c => c.ApiLogin, config.ApiLogin));
+				await guildConfig.SetLoginAsync(config);
 
 				await context.Channel.SendMessageAsync($"API credentials has been set.");
 			}
@@ -102,21 +91,17 @@ namespace SocialGuard.YC.Modules
 			{
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 				config.AutoBanBlacklisted = Utilities.ParseBoolParameter(key) ?? config.AutoBanBlacklisted;
-
-				await guildConfig.UpdateOneAsync(
-					Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
-					Builders<GuildConfig>.Update.Set(c => c.AutoBanBlacklisted, config.AutoBanBlacklisted));
-
+				await guildConfig.SetAutobanAsync(config);
 				await context.RespondAsync($"Auto-ban Blacklist has been turned **{(config.AutoBanBlacklisted ? "on" : "off")}**.");
 			}
-			
+
 			[Command("joinlog-suppress"), RequireUserPermissions(Permissions.ManageGuild)]
 			public async Task JoinlogSuppressAsync(CommandContext context)
 			{
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 
-				await context.RespondAsync(config.SuppressJoinlogCleanRecords 
-					? "All clean records are currently suppressed from displaying in Joinlog." 
+				await context.RespondAsync(config.SuppressJoinlogCleanRecords
+					? "All clean records are currently suppressed from displaying in Joinlog."
 					: "All records are displayed in Joinlog.");
 			}
 			[Command("joinlog-suppress")]
@@ -124,11 +109,7 @@ namespace SocialGuard.YC.Modules
 			{
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
 				config.SuppressJoinlogCleanRecords = Utilities.ParseBoolParameter(key) ?? config.SuppressJoinlogCleanRecords;
-
-				await guildConfig.UpdateOneAsync(
-					Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
-					Builders<GuildConfig>.Update.Set(c => c.SuppressJoinlogCleanRecords, config.SuppressJoinlogCleanRecords));
-
+				await guildConfig.SetJoinlogSuppressionAsync(config);
 
 				await context.RespondAsync(config.SuppressJoinlogCleanRecords
 					? "All clean records will now be suppressed from displaying in Joinlog."

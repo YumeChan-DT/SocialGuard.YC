@@ -9,6 +9,8 @@ using DSharpPlus.Entities;
 using DSharpPlus;
 using MongoDB.Driver;
 using System.Collections.Generic;
+using SocialGuard.YC.Services;
+using DSharpPlus.SlashCommands;
 
 namespace SocialGuard.YC
 {
@@ -22,7 +24,7 @@ namespace SocialGuard.YC
 		};
 
 		public static async Task<TData> ParseResponseFullAsync<TData>(HttpResponseMessage response) => JsonSerializer.Deserialize<TData>(await response.Content.ReadAsStringAsync(), SerializerOptions);
-	
+
 		public static IApiConfig PopulateApiConfig(this IApiConfig config)
 		{
 			config.ApiHost ??= "https://socialguard.net";
@@ -30,6 +32,9 @@ namespace SocialGuard.YC
 
 			return config;
 		}
+
+		public static async Task<DiscordEmbed> GetLookupEmbedAsync(this TrustlistUserApiService trustlist, DiscordUser user)
+			=> BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
 
 		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser, TrustlistEntry entry = null)
 		{
@@ -73,19 +78,6 @@ namespace SocialGuard.YC
 			};
 		}
 
-		public static async Task<GuildConfig> FindOrCreateConfigAsync(this IMongoCollection<GuildConfig> collection, ulong guildId)
-		{
-			GuildConfig config = (await collection.FindAsync(c => c.Id == guildId)).FirstOrDefault();
-
-			if (config is null)
-			{
-				await collection.InsertOneAsync(config = new() { Id = guildId });
-			}
-
-			return config;
-		}
-
-
 		internal static string GenerateLocalMasterKey()
 		{
 			using RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create();
@@ -107,7 +99,7 @@ namespace SocialGuard.YC
 		{
 			"true" or "yes" or "on" or "1" => true,
 			"false" or "no" or "off" or "0" => false,
-			_ => null			
+			_ => null
 		};
 
 		public static async IAsyncEnumerable<T> ToAsyncEnumerable<T>(this IAsyncCursor<T> asyncCursor)
@@ -120,5 +112,25 @@ namespace SocialGuard.YC
 				}
 			}
 		}
+
+		public static Task<DiscordMessage> FollowUpAsync(this BaseContext ctx, string content, bool isEphemeral = false)
+			=> ctx.FollowUpAsync(new() { Content = content, IsEphemeral = isEphemeral });
+
+
+		public static DiscordEmbed BuildEmitterEmbed(Emitter emitter) => new DiscordEmbedBuilder()
+			.WithTitle("Emitter Info")
+			.WithDescription(emitter.DisplayName)
+			.AddField("Username", emitter.Login)
+			.AddField("Type", EmitterTypeToString(emitter.EmitterType), true)
+			.AddField("Discord ID", emitter.Snowflake is 0 ? "N/A" : emitter.Snowflake.ToString(), true)
+			.WithFooter(SignatureFooter)
+			.Build();
+
+		public static string EmitterTypeToString(EmitterType type) => type switch
+		{
+			EmitterType.User => "User",
+			EmitterType.Server => "Server",
+			_ => "Unknown"
+		};
 	}
 }
