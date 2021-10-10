@@ -18,10 +18,10 @@ namespace SocialGuard.YC.Services
 	public class AuthApiService
 	{
 		private readonly HttpClient httpClient;
-		private readonly EncryptionService encryption;
+		private readonly IEncryptionService encryption;
 		private readonly IMongoCollection<GuildConfig> guildConfig;
 
-		public AuthApiService(IHttpClientFactory httpFactory, IConfigProvider<IApiConfig> configProvider, EncryptionService encryption, IDatabaseProvider<PluginManifest> database)
+		public AuthApiService(IHttpClientFactory httpFactory, IConfigProvider<IApiConfig> configProvider, IEncryptionService encryption, IDatabaseProvider<PluginManifest> database)
 		{
 			httpClient = httpFactory.CreateClient(nameof(PluginManifest));
 			httpClient.BaseAddress = new(configProvider.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig().ApiHost);

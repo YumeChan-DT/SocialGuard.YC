@@ -23,13 +23,13 @@ namespace SocialGuard.YC.Modules
 		{
 			private readonly IMongoCollection<GuildConfig> guildConfig;
 			private readonly AuthApiService auth;
-			private readonly EncryptionService encryption;
+			private readonly IEncryptionService _encryption;
 
-			public GuildConfigModule(IDatabaseProvider<PluginManifest> database, AuthApiService auth, EncryptionService encryption)
+			public GuildConfigModule(IDatabaseProvider<PluginManifest> database, AuthApiService auth, IEncryptionService encryption)
 			{
 				guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 				this.auth = auth;
-				this.encryption = encryption;
+				this._encryption = encryption;
 			}
 
 
@@ -73,7 +73,7 @@ namespace SocialGuard.YC.Modules
 				await context.Message.DeleteAsync();
 
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
-				config.ApiLogin = new(username, encryption.Encrypt(password));
+				config.ApiLogin = new(username, _encryption.Encrypt(password));
 
 				await guildConfig.SetLoginAsync(config);
 

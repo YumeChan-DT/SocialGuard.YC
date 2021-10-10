@@ -110,7 +110,7 @@ namespace SocialGuard.YC
 			.AddSingleton<ComponentInteractionsListener>()
 			.AddSingleton<TrustlistUserApiService>()
 			.AddSingleton<AuthApiService>()
-			.AddSingleton<EncryptionService>()
+			.AddSingleton<IEncryptionService, EncryptionService>()
 //			.AddSingleton((services) => services.GetRequiredService<IConfigProvider<IApiConfig>>().InitConfig(ApiConfigFileName).PopulateApiConfig())
 			;
 	}

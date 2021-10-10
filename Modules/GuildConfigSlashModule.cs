@@ -27,9 +27,9 @@ namespace SocialGuard.YC.Modules
 
 			private readonly IMongoCollection<GuildConfig> guildConfig;
 			private readonly AuthApiService auth;
-			private readonly EncryptionService encryption;
+			private readonly IEncryptionService encryption;
 
-			public GuildConfigSlashModule(IDatabaseProvider<PluginManifest> database, AuthApiService auth, EncryptionService encryption)
+			public GuildConfigSlashModule(IDatabaseProvider<PluginManifest> database, AuthApiService auth, IEncryptionService encryption)
 			{
 				guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 				this.auth = auth;
