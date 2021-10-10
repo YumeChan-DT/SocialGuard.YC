@@ -18,12 +18,6 @@ namespace SocialGuard.YC
 {
 	public class PluginManifest : Plugin
 	{
-#if !DEBUG
-		internal protected const string PasswordEncryptionKeyName = "PasswordEncryption";
-#else
-		internal protected const string PasswordEncryptionKeyName = "DEV-PasswordEncryption";
-#endif
-
 		public override string DisplayName => "NSYS SocialGuard (YC)";
 		public override bool StealthMode => false;
 		internal const string ApiConfigFileName = "api";
@@ -57,32 +51,6 @@ namespace SocialGuard.YC
 			await broadcastsListener.StartAsync(cancellationToken);
 			await guildTrafficHandler.StartAsync(cancellationToken);
 
-			KeyClient keyClient = new(new(_apiConfig.KeyVaultUri), new ClientSecretCredential(
-				_apiConfig.AzureIdentity.TenantId,
-				_apiConfig.AzureIdentity.ClientId,
-				_apiConfig.AzureIdentity.ClientSecret));
-
-
-			bool noKey = true;
-
-			await foreach (KeyProperties keyProp in keyClient.GetPropertiesOfKeysAsync().WithCancellation(cancellationToken))
-			{
-				if (keyProp is { Name: PasswordEncryptionKeyName, Enabled: true })
-				{
-					if ((await keyClient.GetKeyAsync(PasswordEncryptionKeyName)).Value is KeyVaultKey key
-						&& key.KeyOperations.Contains(KeyOperation.Decrypt) && key.KeyOperations.Contains(KeyOperation.Encrypt))
-					{
-						noKey = false;
-						break;
-					}
-				}
-			}
-
-			if (noKey)
-			{
-				await keyClient.CreateKeyAsync(PasswordEncryptionKeyName, KeyType.Rsa);
-			}
-
 
 			logger.LogInformation("Loaded {plugin}.", DisplayName);
 			logger.LogInformation("Current SocialGuard API Path: {apiPath}", _apiConfig.ApiHost);
@@ -110,7 +78,13 @@ namespace SocialGuard.YC
 			.AddSingleton<ComponentInteractionsListener>()
 			.AddSingleton<TrustlistUserApiService>()
 			.AddSingleton<AuthApiService>()
-			.AddSingleton<IEncryptionService, EncryptionService>()
+			.AddSingleton<IApiConfig>((services) => services.GetRequiredService<IConfigProvider<IApiConfig>>().InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig())
+			.AddSingleton<IEncryptionService>((services) =>
+			{
+				KeyVaultService kvs = ActivatorUtilities.CreateInstance<KeyVaultService>(services);
+				kvs.InitializeAsync(CancellationToken.None).GetAwaiter().GetResult();
+				return kvs;
+			})
 //			.AddSingleton((services) => services.GetRequiredService<IConfigProvider<IApiConfig>>().InitConfig(ApiConfigFileName).PopulateApiConfig())
 			;
 	}
