@@ -29,6 +29,10 @@ namespace SocialGuard.YC
 		{
 			config.ApiHost ??= "https://socialguard.net";
 			config.EncryptionKey ??= GenerateLocalMasterKey();
+			config.KeyVaultUri ??= "https://socialguard-yc.vault.azure.net/";
+			config.AzureIdentity.ClientId ??= string.Empty;
+			config.AzureIdentity.ClientSecret ??= string.Empty;
+			config.AzureIdentity.TenantId ??= string.Empty;
 
 			return config;
 		}
