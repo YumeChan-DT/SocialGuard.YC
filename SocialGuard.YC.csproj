@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -12,9 +12,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <OutDir>$(YumeChan_PluginsLocation)</OutDir>
-    <OutputPath>$(YumeChan_PluginsLocation)</OutputPath>
-    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <OutDir>$(YumeChan_PluginsLocation)\$(MSBuildProjectName)</OutDir>
+    <OutputPath>$(YumeChan_PluginsLocation)\$(MSBuildProjectName)</OutputPath>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
 
   <ItemGroup>
