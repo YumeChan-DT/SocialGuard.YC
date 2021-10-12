@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
+using SocialGuard.Common.Services;
+using SocialGuard.Common.Data.Models;
 
 namespace SocialGuard.YC
 {
@@ -17,14 +19,14 @@ namespace SocialGuard.YC
 	{
 		private readonly ILogger<GuildTrafficHandler> logger;
 		private readonly DiscordClient discordClient;
-		private readonly TrustlistUserApiService apiService;
+		private readonly TrustlistClient _client;
 		private readonly IMongoCollection<GuildConfig> configRepository;
 
-		public GuildTrafficHandler(ILogger<GuildTrafficHandler> logger, DiscordClient discordClient, TrustlistUserApiService api, IDatabaseProvider<PluginManifest> database)
+		public GuildTrafficHandler(ILogger<GuildTrafficHandler> logger, DiscordClient discordClient, TrustlistClient client, IDatabaseProvider<PluginManifest> database)
 		{
 			this.logger = logger;
 			this.discordClient = discordClient;
-			apiService = api;
+			_client = client;
 			configRepository = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 		}
 
@@ -52,7 +54,7 @@ namespace SocialGuard.YC
 			{
 				logger.LogDebug("Fetching Joinlog record for user {userId} in guild {guildId}.", e.Member.Id, e.Guild.Id);
 
-				TrustlistUser user = await apiService.LookupUserAsync(e.Member.Id);
+				TrustlistUser user = await _client.LookupUserAsync(e.Member.Id);
 				TrustlistEntry entry = user?.GetLatestMaxEntry();
 				byte maxEscalation = user?.GetMaxEscalationLevel() ?? 0;
 				DiscordEmbed entryEmbed = Utilities.BuildUserRecordEmbed(user, e.Member);

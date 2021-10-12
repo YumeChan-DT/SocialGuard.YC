@@ -10,8 +10,7 @@ using System.Threading.Tasks;
 using MongoDB.Driver;
 using YumeChan.PluginBase.Tools.Data;
 using DSharpPlus.SlashCommands.Attributes;
-
-
+using SocialGuard.Common.Services;
 
 namespace SocialGuard.YC.Modules
 {
@@ -20,13 +19,13 @@ namespace SocialGuard.YC.Modules
 		[SlashCommandGroup("trustlist", "Provides commands and integrations to the SocialGuard Trustlist.")]
 		public class TrustlistSlashModule : ApplicationCommandModule
 		{
-			private readonly TrustlistUserApiService trustlist;
+			private readonly TrustlistClient _trustlist;
 			private readonly AuthApiService auth;
 			private readonly IMongoCollection<GuildConfig> guildConfig;
 
-			public TrustlistSlashModule(TrustlistUserApiService trustlist, AuthApiService auth, IDatabaseProvider<PluginManifest> databaseProvider)
+			public TrustlistSlashModule(TrustlistClient trustlist, AuthApiService auth, IDatabaseProvider<PluginManifest> databaseProvider)
 			{
-				this.trustlist = trustlist;
+				_trustlist = trustlist;
 				this.auth = auth;
 				guildConfig = databaseProvider.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 			}
@@ -52,7 +51,7 @@ namespace SocialGuard.YC.Modules
 			protected async Task LookupAsync(BaseContext ctx, DiscordUser user)
 			{
 				await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new() { IsEphemeral = true });
-				await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(await trustlist.GetLookupEmbedAsync(user)));
+				await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(await _trustlist.GetLookupEmbedAsync(user)));
 			}
 
 			protected async Task InsertUserAsync(InteractionContext context, DiscordUser user, byte level, string reason, bool banUser = false, int deleteDays = 0)
@@ -85,14 +84,14 @@ namespace SocialGuard.YC.Modules
 						}
 						else
 						{
-							await trustlist.SubmitEntryAsync(user.Id, new()
+							await _trustlist.SubmitEntryAsync(user.Id, new()
 							{
 								EscalationLevel = level,
 								EscalationNote = reason
-							}, await auth.GetOrUpdateAuthTokenAsync(context.Guild.Id));
+							}, (await auth.GetOrUpdateAuthTokenAsync(context.Guild.Id)).Token);
 
 							string userMention = (user as DiscordMember)?.Mention ?? user.Id.ToString();
-							DiscordEmbed embed = await trustlist.GetLookupEmbedAsync(user);
+							DiscordEmbed embed = await _trustlist.GetLookupEmbedAsync(user);
 
 							await context.FollowUpAsync(new DiscordFollowupMessageBuilder() { Content = $"User '{userMention}' successfully inserted into Trustlist." }
 								.AddEmbed(embed));

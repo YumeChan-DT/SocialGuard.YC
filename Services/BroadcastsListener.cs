@@ -1,18 +1,20 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using DSharpPlus;
+﻿using DSharpPlus;
+using DSharpPlus.Entities;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using YumeChan.PluginBase.Tools;
+using MongoDB.Driver;
+using SocialGuard.Common.Data.Models;
+using SocialGuard.Common.Services;
 using SocialGuard.YC.Data.Models;
 using SocialGuard.YC.Data.Models.Config;
-using YumeChan.PluginBase.Tools.Data;
-using MongoDB.Driver;
+using System;
 using System.Collections.Generic;
-using DSharpPlus.Entities;
+using System.Threading;
+using System.Threading.Tasks;
+using YumeChan.PluginBase.Tools;
+using YumeChan.PluginBase.Tools.Data;
 
 namespace SocialGuard.YC.Services
 {
@@ -20,17 +22,17 @@ namespace SocialGuard.YC.Services
 	{
 		private readonly ILogger<BroadcastsListener> logger;
 		private readonly DiscordClient discordClient;
-		private readonly TrustlistUserApiService trustlistUserApiService;
+		private readonly TrustlistClient _trustlistClient;
 		private readonly HubConnection hubConnection;
 		private readonly IMongoCollection<GuildConfig> guildConfig;
 
 		public BroadcastsListener(ILogger<BroadcastsListener> logger, IConfigProvider<IApiConfig> configProvider,
-			DiscordClient discordClient, IDatabaseProvider<PluginManifest> database, TrustlistUserApiService trustlistUserApiService)
+			DiscordClient discordClient, IDatabaseProvider<PluginManifest> database, TrustlistClient trustlistUserApiService)
 		{
 			IApiConfig config = configProvider.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig();
 			this.logger = logger;
 			this.discordClient = discordClient;
-			this.trustlistUserApiService = trustlistUserApiService;
+			this._trustlistClient = trustlistUserApiService;
 			guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 
 			hubConnection = new HubConnectionBuilder()
@@ -103,7 +105,7 @@ namespace SocialGuard.YC.Services
 
 					if (guild.Members.GetValueOrDefault(userId) is DiscordMember member)
 					{
-						trustlistUser ??= await trustlistUserApiService.LookupUserAsync(userId);
+						trustlistUser ??= await _trustlistClient.LookupUserAsync(userId);
 						embed ??= Utilities.BuildUserRecordEmbed(trustlistUser, member, entry);
 						DiscordChannel actionLogChannel = guild.GetChannel(guildConfig.BanLogChannel is not 0 ? guildConfig.BanLogChannel : guildConfig.JoinLogChannel);
 
