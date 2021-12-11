@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using MongoDB.Driver;
 using SocialGuard.Common.Data.Models.Authentication;
 using System.Threading;
+using System.Text;
 
 namespace SocialGuard.YC.Modules
 {
