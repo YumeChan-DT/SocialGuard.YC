@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using SocialGuard.Common.Data.Models;
+using SocialGuard.Common.Hubs;
 using SocialGuard.Common.Services;
 using SocialGuard.YC.Data.Models;
 using SocialGuard.YC.Data.Models.Config;
@@ -41,27 +42,23 @@ namespace SocialGuard.YC.Services
 				.WithAutomaticReconnect()
 				.Build();
 
-			const string	newEntryMethod = "NotifyNewEntry",
-							escalatedEntryMethod = "NotifyEscalatedEntry",
-							deletedEntryMethod = "NotifyDeletedEntry";
-
 			void LogBroadcast(string name, ulong userid) => logger.LogDebug("Received SignalR Boradcast: {name} {userId}", name, userid);
 
-			hubConnection.On<ulong, TrustlistEntry>(newEntryMethod, async (userId, entry) =>
+			hubConnection.On<ulong, TrustlistEntry>(nameof(ITrustlistHubPush.NotifyNewEntry), async (userId, entry) =>
 			{
-				LogBroadcast(newEntryMethod, userId);
+				LogBroadcast(nameof(ITrustlistHubPush.NotifyNewEntry), userId);
 				await BroadcastUpdateAsync(BroadcastUpdateType.NewEntry, userId, entry);
 			});
 
-			hubConnection.On<ulong, TrustlistEntry, byte>(escalatedEntryMethod, async (userId, entry, level) =>
+			hubConnection.On<ulong, TrustlistEntry, byte>(nameof(ITrustlistHubPush.NotifyEscalatedEntry), async (userId, entry, level) =>
 			{
-				LogBroadcast(escalatedEntryMethod, userId);
+				LogBroadcast(nameof(ITrustlistHubPush.NotifyEscalatedEntry), userId);
 				await BroadcastUpdateAsync(BroadcastUpdateType.Escalation, userId, entry);
 			});
 
-			hubConnection.On<ulong, TrustlistEntry>(deletedEntryMethod, (userId, entry) =>
+			hubConnection.On<ulong, TrustlistEntry>(nameof(ITrustlistHubPush.NotifyDeletedEntry), (userId, entry) =>
 			{
-				LogBroadcast(deletedEntryMethod, userId);
+				LogBroadcast(nameof(ITrustlistHubPush.NotifyDeletedEntry), userId);
 			});
 		}
 
