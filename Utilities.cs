@@ -12,146 +12,145 @@ using System.Collections.Generic;
 using SocialGuard.YC.Data.Models;
 using DSharpPlus.SlashCommands;
 using SocialGuard.Common.Services;
-using System.Drawing;
 
-namespace SocialGuard.YC
+
+namespace SocialGuard.YC;
+
+public static class Utilities
 {
-	public static class Utilities
+	internal static string SignatureFooter = $"NSYS SocialGuard (YC) v{PluginManifest.VersionString}";
+
+	internal static JsonSerializerOptions SerializerOptions => new()
 	{
-		internal static string SignatureFooter = $"NSYS SocialGuard (YC) v{PluginManifest.VersionString}";
+		PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+	};
 
-		internal static JsonSerializerOptions SerializerOptions => new()
+	public static async Task<TData> ParseResponseFullAsync<TData>(HttpResponseMessage response) => JsonSerializer.Deserialize<TData>(await response.Content.ReadAsStringAsync(), SerializerOptions);
+
+	public static IApiConfig PopulateApiConfig(this IApiConfig config)
+	{
+		config.ApiHost ??= "https://socialguard.net";
+		config.EncryptionKey ??= GenerateLocalMasterKey();
+		config.KeyVaultUri ??= "https://socialguard-yc.vault.azure.net/";
+		config.AzureIdentity.ClientId ??= string.Empty;
+		config.AzureIdentity.ClientSecret ??= string.Empty;
+		config.AzureIdentity.TenantId ??= string.Empty;
+
+		return config;
+	}
+
+	public static async Task<DiscordEmbed> GetLookupEmbedAsync(this TrustlistClient trustlist, DiscordUser user)
+		=> BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
+
+	public static DiscordEmbed BuildLeaveEmbed(DiscordUser user)
+	{
+		DiscordEmbedBuilder builder = new()
 		{
-			PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+			Title = $"Departing User : {user.Username}",
+			Color = DiscordColor.NotQuiteBlack,
+			Footer = new() { Text = SignatureFooter }
 		};
 
-		public static async Task<TData> ParseResponseFullAsync<TData>(HttpResponseMessage response) => JsonSerializer.Deserialize<TData>(await response.Content.ReadAsStringAsync(), SerializerOptions);
+		builder.AddField("ID", $"`{user.Id}`", true);
+		builder.AddField("Account Created", user.CreationTimestamp.UtcDateTime.ToString(), true);
 
-		public static IApiConfig PopulateApiConfig(this IApiConfig config)
+		return builder.Build();
+	}
+
+	public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser, TrustlistEntry entry = null)
+	{
+		entry ??= trustlistUser?.GetLatestMaxEntry();
+		(DiscordColor color, string name, string desc) = GetEscalationDescriptions(entry?.EscalationLevel ?? 0);
+
+		DiscordEmbedBuilder builder = new()
 		{
-			config.ApiHost ??= "https://socialguard.net";
-			config.EncryptionKey ??= GenerateLocalMasterKey();
-			config.KeyVaultUri ??= "https://socialguard-yc.vault.azure.net/";
-			config.AzureIdentity.ClientId ??= string.Empty;
-			config.AzureIdentity.ClientSecret ??= string.Empty;
-			config.AzureIdentity.TenantId ??= string.Empty;
-
-			return config;
-		}
-
-		public static async Task<DiscordEmbed> GetLookupEmbedAsync(this TrustlistClient trustlist, DiscordUser user)
-			=> BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
-
-		public static DiscordEmbed BuildLeaveEmbed(DiscordUser user)
-		{
-			DiscordEmbedBuilder builder = new()
-			{
-				Title = $"Departing User : {user.Username}",
-				Color = DiscordColor.NotQuiteBlack,
-				Footer = new() { Text = SignatureFooter }
-			};
-
-			builder.AddField("ID", $"`{user.Id}`", true);
-			builder.AddField("Account Created", user.CreationTimestamp.UtcDateTime.ToString(), true);
-
-			return builder.Build();
-		}
-
-		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser, TrustlistEntry entry = null)
-		{
-			entry ??= trustlistUser?.GetLatestMaxEntry();
-			(DiscordColor color, string name, string desc) = GetEscalationDescriptions(entry?.EscalationLevel ?? 0);
-
-			DiscordEmbedBuilder builder = new()
-			{
-				Title = $"Trustlist User : {discordUser.Username}",
-				Color = color,
-				Description = desc,
-				Footer = new() { Text = SignatureFooter }
-			};
-
-			builder.AddField("ID", $"`{discordUser.Id}`", true);
-			builder.AddField("Account Created", discordUser.CreationTimestamp.UtcDateTime.ToString(), true);
-
-			if (entry is not null)
-			{
-				builder
-					.AddField("Last Emitter", $"{entry.Emitter.DisplayName} (`{entry.Emitter.Login}`)")
-					.AddField("Highest Escalation Level", $"**{entry.EscalationLevel}** - {name}", true)
-					.AddField("Average Escalation Level", $"**{trustlistUser.GetMedianEscalationLevel():F2}**", true)
-					.AddField("Total Entries", $"**{trustlistUser.Entries.Count}**", true)
-					.AddField("First Entered", entry.EntryAt.ToString(), true)
-					.AddField("Last Escalation", entry.LastEscalated.ToString(), true)
-					.AddField("Last Reason", entry.EscalationNote);
-			}
-
-			return builder.Build();
-		}
-
-		private static (DiscordColor color, string name, string desc) GetEscalationDescriptions(byte escalationLevel)
-		{
-			return escalationLevel switch
-			{
-				0 => (DiscordColor.Green, "Clear", "This user has no record, and is cleared safe."),
-				1 => (DiscordColor.Blue, "Suspicious", "This user is marked as suspicious. Their behaviour should be monitored."),
-				2 => (DiscordColor.Orange, "Untrusted", "This user is marked as untrusted. Please exerce caution when interacting with them."),
-				>= 3 => (DiscordColor.Red, "Blacklisted", "This user is dangerous and has been blacklisted. Banning this user is greatly advised.")
-			};
-		}
-
-		internal static string GenerateLocalMasterKey()
-		{
-			using RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create();
-
-			byte[] bytes = new byte[96];
-			randomNumberGenerator.GetBytes(bytes);
-			string localMasterKeyBase64 = Convert.ToBase64String(bytes);
-			return localMasterKeyBase64;
-		}
-
-		public static DiscordEmbedBuilder WithAuthor(this DiscordEmbedBuilder embed, DiscordUser user)
-		{
-			return embed.WithAuthor(user.GetFullUsername(), null, user.GetAvatarUrl(ImageFormat.Auto, 128));
-		}
-
-		public static string GetFullUsername(this DiscordUser user) => $"{user.Username}#{user.Discriminator}";
-
-		public static bool? ParseBoolParameter(string parameter) =>	parameter.ToLowerInvariant() switch
-		{
-			"true" or "yes" or "on" or "1" => true,
-			"false" or "no" or "off" or "0" => false,
-			_ => null
+			Title = $"Trustlist User : {discordUser.Username}",
+			Color = color,
+			Description = desc,
+			Footer = new() { Text = SignatureFooter }
 		};
 
-		public static async IAsyncEnumerable<T> ToAsyncEnumerable<T>(this IAsyncCursor<T> asyncCursor)
+		builder.AddField("ID", $"`{discordUser.Id}`", true);
+		builder.AddField("Account Created", discordUser.CreationTimestamp.UtcDateTime.ToString(), true);
+
+		if (entry is not null)
 		{
-			while (await asyncCursor.MoveNextAsync())
-			{
-				foreach (T current in asyncCursor.Current)
-				{
-					yield return current;
-				}
-			}
+			builder
+				.AddField("Last Emitter", $"{entry.Emitter.DisplayName} (`{entry.Emitter.Login}`)")
+				.AddField("Highest Escalation Level", $"**{entry.EscalationLevel}** - {name}", true)
+				.AddField("Average Escalation Level", $"**{trustlistUser.GetMedianEscalationLevel():F2}**", true)
+				.AddField("Total Entries", $"**{trustlistUser.Entries.Count}**", true)
+				.AddField("First Entered", entry.EntryAt.ToString(), true)
+				.AddField("Last Escalation", entry.LastEscalated.ToString(), true)
+				.AddField("Last Reason", entry.EscalationNote);
 		}
 
-		public static Task<DiscordMessage> FollowUpAsync(this BaseContext ctx, string content, bool isEphemeral = false)
-			=> ctx.FollowUpAsync(new() { Content = content, IsEphemeral = isEphemeral });
+		return builder.Build();
+	}
 
-
-		public static DiscordEmbed BuildEmitterEmbed(Emitter emitter) => new DiscordEmbedBuilder()
-			.WithTitle("Emitter Info")
-			.WithDescription(emitter.DisplayName)
-			.AddField("Username", emitter.Login)
-			.AddField("Type", EmitterTypeToString(emitter.EmitterType), true)
-			.AddField("Discord ID", emitter.Snowflake is 0 ? "N/A" : emitter.Snowflake.ToString(), true)
-			.WithFooter(SignatureFooter)
-			.Build();
-
-		public static string EmitterTypeToString(EmitterType type) => type switch
+	private static (DiscordColor color, string name, string desc) GetEscalationDescriptions(byte escalationLevel)
+	{
+		return escalationLevel switch
 		{
-			EmitterType.User => "User",
-			EmitterType.Server => "Server",
-			_ => "Unknown"
+			0 => (DiscordColor.Green, "Clear", "This user has no record, and is cleared safe."),
+			1 => (DiscordColor.Blue, "Suspicious", "This user is marked as suspicious. Their behaviour should be monitored."),
+			2 => (DiscordColor.Orange, "Untrusted", "This user is marked as untrusted. Please exerce caution when interacting with them."),
+			>= 3 => (DiscordColor.Red, "Blacklisted", "This user is dangerous and has been blacklisted. Banning this user is greatly advised.")
 		};
 	}
+
+	internal static string GenerateLocalMasterKey()
+	{
+		using RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create();
+
+		byte[] bytes = new byte[96];
+		randomNumberGenerator.GetBytes(bytes);
+		string localMasterKeyBase64 = Convert.ToBase64String(bytes);
+		return localMasterKeyBase64;
+	}
+
+	public static DiscordEmbedBuilder WithAuthor(this DiscordEmbedBuilder embed, DiscordUser user)
+	{
+		return embed.WithAuthor(user.GetFullUsername(), null, user.GetAvatarUrl(ImageFormat.Auto, 128));
+	}
+
+	public static string GetFullUsername(this DiscordUser user) => $"{user.Username}#{user.Discriminator}";
+
+	public static bool? ParseBoolParameter(string parameter) => parameter.ToLowerInvariant() switch
+	{
+		"true" or "yes" or "on" or "1" => true,
+		"false" or "no" or "off" or "0" => false,
+		_ => null
+	};
+
+	public static async IAsyncEnumerable<T> ToAsyncEnumerable<T>(this IAsyncCursor<T> asyncCursor)
+	{
+		while (await asyncCursor.MoveNextAsync())
+		{
+			foreach (T current in asyncCursor.Current)
+			{
+				yield return current;
+			}
+		}
+	}
+
+	public static Task<DiscordMessage> FollowUpAsync(this BaseContext ctx, string content, bool isEphemeral = false)
+		=> ctx.FollowUpAsync(new() { Content = content, IsEphemeral = isEphemeral });
+
+
+	public static DiscordEmbed BuildEmitterEmbed(Emitter emitter) => new DiscordEmbedBuilder()
+		.WithTitle("Emitter Info")
+		.WithDescription(emitter.DisplayName)
+		.AddField("Username", emitter.Login)
+		.AddField("Type", EmitterTypeToString(emitter.EmitterType), true)
+		.AddField("Discord ID", emitter.Snowflake is 0 ? "N/A" : emitter.Snowflake.ToString(), true)
+		.WithFooter(SignatureFooter)
+		.Build();
+
+	public static string EmitterTypeToString(EmitterType type) => type switch
+	{
+		EmitterType.User => "User",
+		EmitterType.Server => "Server",
+		_ => "Unknown"
+	};
 }
