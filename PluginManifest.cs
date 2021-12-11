@@ -79,9 +79,16 @@ namespace SocialGuard.YC
 
 			services.AddSingleton<IEncryptionService>((services) =>
 			{
-				KeyVaultService kvs = ActivatorUtilities.CreateInstance<KeyVaultService>(services);
-				kvs.InitializeAsync(CancellationToken.None).GetAwaiter().GetResult();
-				return kvs;
+				if (services.GetRequiredService<IApiConfig>().AzureIdentity is not null)
+				{
+					KeyVaultService kvs = ActivatorUtilities.CreateInstance<KeyVaultService>(services);
+					kvs.InitializeAsync(CancellationToken.None).GetAwaiter().GetResult();
+					return kvs;
+				}
+				else
+				{
+					return ActivatorUtilities.CreateInstance<LocalEncryptionService>(services);
+				}
 			});
 
 			return services
