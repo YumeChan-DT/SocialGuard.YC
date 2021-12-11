@@ -1,4 +1,4 @@
-﻿using DSharpPlus;
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
@@ -45,6 +45,32 @@ namespace SocialGuard.YC.Modules
 				config.JoinLogChannel = channel.Id;
 				await guildConfig.SetJoinlogAsync(config);
 				await context.RespondAsync($"Join Log channel set to : {context.Guild.GetChannel(config.JoinLogChannel).Mention}.");
+			}
+
+			[Command("leavelog"), RequireUserPermissions(Permissions.ManageGuild)]
+			public async Task GetLeaveLogAsync(CommandContext context)
+			{
+				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
+				DiscordChannel current = context.Guild.GetChannel(config.LeaveLogChannel);
+
+				StringBuilder sb = new();
+				sb.AppendFormat($"Leave Log is currently **{(config.LeaveLogEnabled ? "on" : "off")}**.");
+
+				if (config.LeaveLogEnabled)
+				{
+					sb.AppendFormat($"\nCurrent Leave Log channel: {context.Guild.GetChannel(config.LeaveLogChannel)?.Mention ?? "None"}.");
+				}
+
+				await context.RespondAsync(sb.ToString());
+			}
+			[Command("leavelog")]
+			public async Task SetLeaveLogAsync(CommandContext context, string key, DiscordChannel channel)
+			{
+				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
+				config.LeaveLogEnabled = Utilities.ParseBoolParameter(key) ?? config.LeaveLogEnabled;
+				config.LeaveLogChannel = channel.Id;
+				await guildConfig.SetLeavelogAsync(config);
+				await context.RespondAsync($"Leave Log is now **{(config.LeaveLogEnabled ? "on" : "off")}**. Channel set to : {context.Guild.GetChannel(config.LeaveLogChannel).Mention}.");
 			}
 
 

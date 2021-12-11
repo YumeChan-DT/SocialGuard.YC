@@ -30,6 +30,12 @@ namespace SocialGuard.YC.Services
 			Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
 			Builders<GuildConfig>.Update.Set(c => c.JoinLogChannel, config.JoinLogChannel));
 
+		public static Task<UpdateResult> SetLeavelogAsync(this IMongoCollection<GuildConfig> collection, GuildConfig config) => collection.UpdateOneAsync(
+			Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
+			Builders<GuildConfig>.Update
+				.Set(c => c.LeaveLogEnabled, config.LeaveLogEnabled)
+				.Set(c => c.LeaveLogChannel, config.LeaveLogChannel));
+
 		public static Task<UpdateResult> SetBanlogAsync(this IMongoCollection<GuildConfig> collection, GuildConfig config) => collection.UpdateOneAsync(
 			Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
 			Builders<GuildConfig>.Update.Set(c => c.BanLogChannel, config.BanLogChannel));
