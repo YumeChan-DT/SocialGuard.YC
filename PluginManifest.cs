@@ -4,6 +4,7 @@ using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SocialGuard.Common.Services;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
 using SocialGuard.YC.Services.Security;
@@ -72,22 +73,25 @@ namespace SocialGuard.YC
 
 	public class DependencyRegistrations : DependencyInjectionHandler
 	{
-		public override IServiceCollection ConfigureServices(IServiceCollection services) => services
-			.AddSingleton<GuildTrafficHandler>()
-			.AddSingleton<BroadcastsListener>()
-			.AddSingleton<ComponentInteractionsListener>()
-			.AddSingleton<TrustlistUserApiService>()
-			.AddSingleton<AuthApiService>()
-			.AddSingleton<IApiConfig>((services) => services.GetRequiredService<IConfigProvider<IApiConfig>>().InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig())
-			.AddSingleton<IEncryptionService>((services) =>
+		public override IServiceCollection ConfigureServices(IServiceCollection services)
+		{
+			services.AddHttpClient<RestClientBase>((services, client) => client.BaseAddress = new(services.GetService<IApiConfig>().ApiHost));
+
+			services.AddSingleton<IEncryptionService>((services) =>
 			{
 				KeyVaultService kvs = ActivatorUtilities.CreateInstance<KeyVaultService>(services);
 				kvs.InitializeAsync(CancellationToken.None).GetAwaiter().GetResult();
 				return kvs;
-			})
-//			.AddSingleton((services) => services.GetRequiredService<IConfigProvider<IApiConfig>>().InitConfig(ApiConfigFileName).PopulateApiConfig())
-			;
+			});
+
+			return services
+				.AddSingleton<GuildTrafficHandler>()
+				.AddSingleton<BroadcastsListener>()
+				.AddSingleton<ComponentInteractionsListener>()
+				.AddSingleton<TrustlistClient>()
+				.AddSingleton<EmitterClient>()
+				.AddSingleton<AuthApiService>()
+				.AddSingleton((services) => services.GetRequiredService<IConfigProvider<IApiConfig>>().InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig());
+		}
 	}
-
-
 }

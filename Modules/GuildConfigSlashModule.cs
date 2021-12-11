@@ -8,13 +8,13 @@ using SocialGuard.YC.Services;
 using YumeChan.PluginBase.Tools.Data;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
-using SocialGuard.YC.Data.Components;
-using SocialGuard.YC.Data.Models.Api;
 using DSharpPlus.Entities;
 using System.Collections.Generic;
 using System.Linq;
 using DSharpPlus.CommandsNext.Attributes;
 using System;
+using SocialGuard.Common.Data.Models.Authentication;
+using System.Threading;
 
 namespace SocialGuard.YC.Modules
 {
@@ -45,7 +45,7 @@ namespace SocialGuard.YC.Modules
 				await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new() { IsEphemeral = true });
 
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(ctx.Guild.Id);
-				config.ApiLogin = new(username, encryption.Encrypt(password));
+				config.ApiLogin = new() { Username = username, Password = encryption.Encrypt(password) };
 
 				await guildConfig.UpdateOneAsync(
 					Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
@@ -62,8 +62,8 @@ namespace SocialGuard.YC.Modules
 			{
 				await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new() { IsEphemeral = true });
 
-				AuthRegisterCredentials credentials = new(username, email, password);
-				AuthResponse<IAuthComponent> result = await auth.RegisterNewUserAsync(credentials);
+				RegisterModel credentials = new() { Username = username, Email = email, Password = password };
+				Response result = await auth.RegisterNewUserAsync(credentials, CancellationToken.None);
 
 				await ctx.FollowUpAsync($"{ctx.User.Mention} {result.Status} : {result.Message}\n");
 			}

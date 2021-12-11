@@ -11,6 +11,8 @@ using DSharpPlus.Entities;
 using DSharpPlus;
 using System.Linq;
 using MongoDB.Driver;
+using SocialGuard.Common.Services;
+using SocialGuard.Common.Data.Models;
 
 namespace SocialGuard.YC.Modules
 {
@@ -18,13 +20,13 @@ namespace SocialGuard.YC.Modules
 	{
 		public class TrustlistModule : BaseCommandModule
 		{
-			private readonly TrustlistUserApiService trustlist;
+			private readonly TrustlistClient _trustlist;
 			private readonly AuthApiService auth;
 			private readonly IMongoCollection<GuildConfig> guildConfig;
 
-			public TrustlistModule(TrustlistUserApiService trustlist, AuthApiService auth, IDatabaseProvider<PluginManifest> databaseProvider)
+			public TrustlistModule(TrustlistClient trustlist, AuthApiService auth, IDatabaseProvider<PluginManifest> databaseProvider)
 			{
-				this.trustlist = trustlist;
+				this._trustlist = trustlist;
 				this.auth = auth;
 				guildConfig = databaseProvider.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 			}
@@ -70,15 +72,15 @@ namespace SocialGuard.YC.Modules
 
 						if (config.ApiLogin is not null)
 						{
-							await trustlist.SubmitEntryAsync(user.Id, new()
+							await _trustlist.SubmitEntryAsync(user.Id, new()
 							{
 								EscalationLevel = level,
 								EscalationNote = reason
-							}, await auth.GetOrUpdateAuthTokenAsync(context.Guild.Id));
+							}, (await auth.GetOrUpdateAuthTokenAsync(context.Guild.Id)).Token);
 
 							string userMention = (user as DiscordMember)?.Mention ?? user.Id.ToString();
 
-							DiscordEmbed embed = await trustlist.GetLookupEmbedAsync(user);
+							DiscordEmbed embed = await _trustlist.GetLookupEmbedAsync(user);
 							await context.RespondAsync($"User '{userMention}' successfully inserted into Trustlist.", embed);
 
 							if (banUser || (config.AutoBanBlacklisted && level >= 3))
@@ -104,7 +106,7 @@ namespace SocialGuard.YC.Modules
 
 			public async Task RespondLookupAsync(CommandContext context, DiscordUser discordUser, bool silenceOnClear = false)
 			{
-				TrustlistUser user = await trustlist.LookupUserAsync(discordUser.Id);
+				TrustlistUser user = await _trustlist.LookupUserAsync(discordUser.Id);
 
 				if (!silenceOnClear || user.GetMaxEscalationLevel() is not 0)
 				{

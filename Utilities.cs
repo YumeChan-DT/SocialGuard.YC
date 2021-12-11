@@ -1,5 +1,5 @@
 ﻿using SocialGuard.YC.Data.Models.Config;
-using SocialGuard.YC.Data.Models;
+using SocialGuard.Common.Data.Models;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -9,8 +9,9 @@ using DSharpPlus.Entities;
 using DSharpPlus;
 using MongoDB.Driver;
 using System.Collections.Generic;
-using SocialGuard.YC.Services;
+using SocialGuard.YC.Data.Models;
 using DSharpPlus.SlashCommands;
+using SocialGuard.Common.Services;
 
 namespace SocialGuard.YC
 {
@@ -37,7 +38,7 @@ namespace SocialGuard.YC
 			return config;
 		}
 
-		public static async Task<DiscordEmbed> GetLookupEmbedAsync(this TrustlistUserApiService trustlist, DiscordUser user)
+		public static async Task<DiscordEmbed> GetLookupEmbedAsync(this TrustlistClient trustlist, DiscordUser user)
 			=> BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
 
 		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser, TrustlistEntry entry = null)
@@ -62,7 +63,7 @@ namespace SocialGuard.YC
 					.AddField("Last Emitter", $"{entry.Emitter.DisplayName} (`{entry.Emitter.Login}`)")
 					.AddField("Highest Escalation Level", $"**{entry.EscalationLevel}** - {name}", true)
 					.AddField("Average Escalation Level", $"**{trustlistUser.GetMedianEscalationLevel():F2}**", true)
-					.AddField("Total Entries", $"**{trustlistUser.Entries.Length}**", true)
+					.AddField("Total Entries", $"**{trustlistUser.Entries.Count}**", true)
 					.AddField("First Entered", entry.EntryAt.ToString(), true)
 					.AddField("Last Escalation", entry.LastEscalated.ToString(), true)
 					.AddField("Last Reason", entry.EscalationNote);

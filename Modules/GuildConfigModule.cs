@@ -3,16 +3,14 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using YumeChan.PluginBase.Tools.Data;
-using SocialGuard.YC.Data.Components;
-using SocialGuard.YC.Data.Models.Api;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
 using SocialGuard.YC.Services.Security;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using MongoDB.Driver;
-
-
+using SocialGuard.Common.Data.Models.Authentication;
+using System.Threading;
 
 namespace SocialGuard.YC.Modules
 {
@@ -29,7 +27,7 @@ namespace SocialGuard.YC.Modules
 			{
 				guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 				this.auth = auth;
-				this._encryption = encryption;
+				_encryption = encryption;
 			}
 
 
@@ -73,7 +71,7 @@ namespace SocialGuard.YC.Modules
 				await context.Message.DeleteAsync();
 
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
-				config.ApiLogin = new(username, _encryption.Encrypt(password));
+				config.ApiLogin = new() { Username = username, Password = _encryption.Encrypt(password) };
 
 				await guildConfig.SetLoginAsync(config);
 
@@ -121,8 +119,8 @@ namespace SocialGuard.YC.Modules
 			public async Task RegisterAsync(CommandContext context, string username, [EmailAddress] string email, string password)
 			{
 				await context.Message.DeleteAsync();
-				AuthRegisterCredentials credentials = new(username, email, password);
-				AuthResponse<IAuthComponent> result = await auth.RegisterNewUserAsync(credentials);
+				RegisterModel credentials = new() { Username = username, Email = email, Password = password };
+				Response result = await auth.RegisterNewUserAsync(credentials, CancellationToken.None);
 
 				await context.Channel.SendMessageAsync($"{context.User.Mention} {result.Status} : {result.Message}\n");
 			}

@@ -1,18 +1,21 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using DSharpPlus;
+﻿using DSharpPlus;
+using DSharpPlus.Entities;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using YumeChan.PluginBase.Tools;
+using MongoDB.Driver;
+using SocialGuard.Common.Data.Models;
+using SocialGuard.Common.Hubs;
+using SocialGuard.Common.Services;
 using SocialGuard.YC.Data.Models;
 using SocialGuard.YC.Data.Models.Config;
-using YumeChan.PluginBase.Tools.Data;
-using MongoDB.Driver;
+using System;
 using System.Collections.Generic;
-using DSharpPlus.Entities;
+using System.Threading;
+using System.Threading.Tasks;
+using YumeChan.PluginBase.Tools;
+using YumeChan.PluginBase.Tools.Data;
 
 namespace SocialGuard.YC.Services
 {
@@ -20,17 +23,17 @@ namespace SocialGuard.YC.Services
 	{
 		private readonly ILogger<BroadcastsListener> logger;
 		private readonly DiscordClient discordClient;
-		private readonly TrustlistUserApiService trustlistUserApiService;
+		private readonly TrustlistClient _trustlistClient;
 		private readonly HubConnection hubConnection;
 		private readonly IMongoCollection<GuildConfig> guildConfig;
 
 		public BroadcastsListener(ILogger<BroadcastsListener> logger, IConfigProvider<IApiConfig> configProvider,
-			DiscordClient discordClient, IDatabaseProvider<PluginManifest> database, TrustlistUserApiService trustlistUserApiService)
+			DiscordClient discordClient, IDatabaseProvider<PluginManifest> database, TrustlistClient trustlistUserApiService)
 		{
 			IApiConfig config = configProvider.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig();
 			this.logger = logger;
 			this.discordClient = discordClient;
-			this.trustlistUserApiService = trustlistUserApiService;
+			this._trustlistClient = trustlistUserApiService;
 			guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 
 			hubConnection = new HubConnectionBuilder()
@@ -39,27 +42,23 @@ namespace SocialGuard.YC.Services
 				.WithAutomaticReconnect()
 				.Build();
 
-			const string	newEntryMethod = "NotifyNewEntry",
-							escalatedEntryMethod = "NotifyEscalatedEntry",
-							deletedEntryMethod = "NotifyDeletedEntry";
-
 			void LogBroadcast(string name, ulong userid) => logger.LogDebug("Received SignalR Boradcast: {name} {userId}", name, userid);
 
-			hubConnection.On<ulong, TrustlistEntry>(newEntryMethod, async (userId, entry) =>
+			hubConnection.On<ulong, TrustlistEntry>(nameof(ITrustlistHubPush.NotifyNewEntry), async (userId, entry) =>
 			{
-				LogBroadcast(newEntryMethod, userId);
+				LogBroadcast(nameof(ITrustlistHubPush.NotifyNewEntry), userId);
 				await BroadcastUpdateAsync(BroadcastUpdateType.NewEntry, userId, entry);
 			});
 
-			hubConnection.On<ulong, TrustlistEntry, byte>(escalatedEntryMethod, async (userId, entry, level) =>
+			hubConnection.On<ulong, TrustlistEntry, byte>(nameof(ITrustlistHubPush.NotifyEscalatedEntry), async (userId, entry, level) =>
 			{
-				LogBroadcast(escalatedEntryMethod, userId);
+				LogBroadcast(nameof(ITrustlistHubPush.NotifyEscalatedEntry), userId);
 				await BroadcastUpdateAsync(BroadcastUpdateType.Escalation, userId, entry);
 			});
 
-			hubConnection.On<ulong, TrustlistEntry>(deletedEntryMethod, (userId, entry) =>
+			hubConnection.On<ulong, TrustlistEntry>(nameof(ITrustlistHubPush.NotifyDeletedEntry), (userId, entry) =>
 			{
-				LogBroadcast(deletedEntryMethod, userId);
+				LogBroadcast(nameof(ITrustlistHubPush.NotifyDeletedEntry), userId);
 			});
 		}
 
@@ -103,7 +102,7 @@ namespace SocialGuard.YC.Services
 
 					if (guild.Members.GetValueOrDefault(userId) is DiscordMember member)
 					{
-						trustlistUser ??= await trustlistUserApiService.LookupUserAsync(userId);
+						trustlistUser ??= await _trustlistClient.LookupUserAsync(userId);
 						embed ??= Utilities.BuildUserRecordEmbed(trustlistUser, member, entry);
 						DiscordChannel actionLogChannel = guild.GetChannel(guildConfig.BanLogChannel is not 0 ? guildConfig.BanLogChannel : guildConfig.JoinLogChannel);
 
