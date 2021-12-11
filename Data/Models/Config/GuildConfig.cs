@@ -13,11 +13,13 @@ namespace SocialGuard.YC.Data.Models.Config
 		public ulong Id { get; set; }
 
 		public ulong JoinLogChannel { get; set; }
+		public ulong LeaveLogChannel { get; set; }
 
 		public ulong BanLogChannel { get; set; }
 
 		public bool AutoBanBlacklisted { get; set; }
 		public bool SuppressJoinlogCleanRecords { get; set; }
+		public bool LeaveLogEnabled { get; set; }
 
 		public LoginModel ApiLogin { get; set; }
 
