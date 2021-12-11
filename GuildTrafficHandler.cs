@@ -33,14 +33,16 @@ namespace SocialGuard.YC
 		public Task StartAsync(CancellationToken _)
 		{
 			discordClient.GuildMemberAdded += OnMemberJoinedAsync;
-			logger.LogDebug("Hooked SocialGuard Joinlogs.");
+			discordClient.GuildMemberRemoved += OnMemberLeaveAsync;
+			logger.LogDebug("Hooked SocialGuard Join/Leave Logs.");
 
 			return Task.CompletedTask;
 		}
 		public Task StopAsync(CancellationToken _)
 		{
 			discordClient.GuildMemberAdded -= OnMemberJoinedAsync;
-			logger.LogDebug("Unhooked SocialGuard Joinlogs.");
+			discordClient.GuildMemberRemoved -= OnMemberLeaveAsync;
+			logger.LogDebug("Unhooked SocialGuard Join/Leave Logs.");
 
 			return Task.CompletedTask;
 		}
@@ -76,6 +78,17 @@ namespace SocialGuard.YC
 					await e.Guild.GetChannel(config.BanLogChannel is not 0 ? config.BanLogChannel : config.JoinLogChannel)
 						.SendMessageAsync($"User **{e.Member.GetFullUsername()}** ({e.Member.Mention}) banned on server join.", entryEmbed);
 				}
+			}
+		}
+
+		public async Task OnMemberLeaveAsync(DiscordClient _, GuildMemberRemoveEventArgs e)
+		{
+			GuildConfig config = await configRepository.FindOrCreateConfigAsync(e.Member.Guild.Id);
+
+			if (config.LeaveLogEnabled)
+			{
+				DiscordChannel channel = e.Guild.GetChannel(config.LeaveLogChannel);
+				await channel.SendMessageAsync($"User **{e.Member.GetFullUsername()}** ({e.Member.Mention}) has left the server.", Utilities.BuildLeaveEmbed(e.Member));
 			}
 		}
 	}

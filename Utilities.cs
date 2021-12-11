@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using SocialGuard.YC.Data.Models;
 using DSharpPlus.SlashCommands;
 using SocialGuard.Common.Services;
+using System.Drawing;
 
 namespace SocialGuard.YC
 {
@@ -40,6 +41,21 @@ namespace SocialGuard.YC
 
 		public static async Task<DiscordEmbed> GetLookupEmbedAsync(this TrustlistClient trustlist, DiscordUser user)
 			=> BuildUserRecordEmbed(await trustlist.LookupUserAsync(user.Id), user);
+
+		public static DiscordEmbed BuildLeaveEmbed(DiscordUser user)
+		{
+			DiscordEmbedBuilder builder = new()
+			{
+				Title = $"Departing User : {user.Username}",
+				Color = DiscordColor.NotQuiteBlack,
+				Footer = new() { Text = SignatureFooter }
+			};
+
+			builder.AddField("ID", $"`{user.Id}`", true);
+			builder.AddField("Account Created", user.CreationTimestamp.UtcDateTime.ToString(), true);
+
+			return builder.Build();
+		}
 
 		public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser, TrustlistEntry entry = null)
 		{
