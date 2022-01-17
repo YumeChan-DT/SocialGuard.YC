@@ -32,7 +32,7 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
-    <PackageReference Include="SocialGuard.Common" Version="3.0.0-pre2" />
+    <PackageReference Include="SocialGuard.Common" Version="3.0.1" />
     <PackageReference Include="YumeChan.PluginBase" Version="2.4.3">
       <IncludeAssets></IncludeAssets>
     </PackageReference>
