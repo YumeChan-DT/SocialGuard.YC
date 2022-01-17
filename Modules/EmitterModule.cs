@@ -3,11 +3,12 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using YumeChan.PluginBase.Tools.Data;
-using SocialGuard.YC.Data.Models;
-using SocialGuard.YC.Data.Models.Config;
-using SocialGuard.YC.Services;
 using System.Threading.Tasks;
 using MongoDB.Driver;
+using SocialGuard.Common.Services;
+using SocialGuard.YC.Data.Models.Config;
+using SocialGuard.YC.Services;
+using SocialGuard.Common.Data.Models;
 
 namespace SocialGuard.YC.Modules
 {
@@ -17,13 +18,13 @@ namespace SocialGuard.YC.Modules
 		public class EmitterModule : BaseCommandModule
 		{
 			private readonly IMongoCollection<GuildConfig> guildConfig;
-			private readonly EmitterApiService emitterService;
+			private readonly EmitterClient _emitterClient;
 			private readonly AuthApiService authService;
 
-			public EmitterModule(EmitterApiService emitterService, AuthApiService authService, IDatabaseProvider<PluginManifest> database)
+			public EmitterModule(EmitterClient emitterClient, AuthApiService authService, IDatabaseProvider<PluginManifest> database)
 			{
 				guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
-				this.emitterService = emitterService;
+				_emitterClient = emitterClient;
 				this.authService = authService;
 			}
 
@@ -38,7 +39,7 @@ namespace SocialGuard.YC.Modules
 					return;
 				}
 
-				Emitter emitter = await emitterService.GetEmitterAsync(await authService.GetOrUpdateAuthTokenAsync(context.Guild.Id));
+				Emitter emitter = await _emitterClient.GetEmitterAsync(await authService.GetOrUpdateAuthTokenAsync(context.Guild.Id));
 
 				if (emitter is null)
 				{
@@ -61,7 +62,7 @@ namespace SocialGuard.YC.Modules
 					return;
 				}
 
-				await emitterService.SetEmitterAsync(new()
+				await _emitterClient.SetEmitterAsync(new()
 				{
 					DisplayName = context.Guild.Name,
 					EmitterType = EmitterType.Server,
@@ -69,7 +70,7 @@ namespace SocialGuard.YC.Modules
 				}, await authService.GetOrUpdateAuthTokenAsync(context.Guild.Id));
 
 				await context.RespondAsync("Emitter successfully set :",
-					Utilities.BuildEmitterEmbed(await emitterService.GetEmitterAsync(await authService.GetOrUpdateAuthTokenAsync(context.Guild.Id))));
+					Utilities.BuildEmitterEmbed(await _emitterClient.GetEmitterAsync(await authService.GetOrUpdateAuthTokenAsync(context.Guild.Id))));
 			}
 		}
 	}

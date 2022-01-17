@@ -12,174 +12,173 @@ using SocialGuard.YC.Services;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 
-namespace SocialGuard.YC
+namespace SocialGuard.YC;
+
+public class ComponentInteractionsListener : IHostedService
 {
-	public class ComponentInteractionsListener : IHostedService
+	private readonly IMongoCollection<GuildConfig> _configCollection;
+	private readonly ILogger<GuildTrafficHandler> _logger;
+	private readonly DiscordClient _discordClient;
+
+	public ComponentInteractionsListener(ILogger<GuildTrafficHandler> logger, DiscordClient discordClient, IDatabaseProvider<PluginManifest> database)
 	{
-		private readonly IMongoCollection<GuildConfig> configCollection;
-		private readonly ILogger<GuildTrafficHandler> logger;
-		private readonly DiscordClient discordClient;
+		_configCollection = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
+		_logger = logger;
+		_discordClient = discordClient;
+	}
 
-		public ComponentInteractionsListener(ILogger<GuildTrafficHandler> logger, DiscordClient discordClient, IDatabaseProvider<PluginManifest> database)
+
+	public Task StartAsync(CancellationToken cancellationToken)
+	{
+		_discordClient.ComponentInteractionCreated += OnComponentInteractionCreatedAsync;
+
+		return Task.CompletedTask;
+	}
+
+	public Task StopAsync(CancellationToken cancellationToken)
+	{
+		_discordClient.ComponentInteractionCreated -= OnComponentInteractionCreatedAsync;
+
+		return Task.CompletedTask;
+	}
+
+	public Task OnComponentInteractionCreatedAsync(DiscordClient sender, ComponentInteractionCreateEventArgs e) => e.Id switch
+	{
+		"sg-joinlog-select" => HandleJoinlogConfigurationAsync(e),
+		"sg-banlog-select" => HandleBanlogConfigurationAsync(e),
+		"sg-autoban-select" => HandleAutobanConfigurationAsync(e),
+		"sg-joinlog-suppress-select" => HandleJoinlogSuppressConfigurationAsync(e),
+
+		_ => Task.CompletedTask
+	};
+
+
+	public async Task HandleJoinlogConfigurationAsync(ComponentInteractionCreateEventArgs e)
+	{
+		await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+
+		if ((await e.Guild.GetMemberAsync(e.User.Id)).Permissions.HasPermission(Permissions.ManageGuild))
 		{
-			configCollection = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
-			this.logger = logger;
-			this.discordClient = discordClient;
-		}
+			DiscordChannel channel = null;
+			GuildConfig config = await _configCollection.FindOrCreateConfigAsync(e.Guild.Id);
 
-
-		public Task StartAsync(CancellationToken cancellationToken)
-		{
-			discordClient.ComponentInteractionCreated += OnComponentInteractionCreatedAsync;
-
-			return Task.CompletedTask;
-		}
-
-		public Task StopAsync(CancellationToken cancellationToken)
-		{
-			discordClient.ComponentInteractionCreated -= OnComponentInteractionCreatedAsync;
-
-			return Task.CompletedTask;
-		}
-
-		public Task OnComponentInteractionCreatedAsync(DiscordClient sender, ComponentInteractionCreateEventArgs e) => e.Id switch
-		{
-			"sg-joinlog-select" => HandleJoinlogConfigurationAsync(e),
-			"sg-banlog-select" => HandleBanlogConfigurationAsync(e),
-			"sg-autoban-select" => HandleAutobanConfigurationAsync(e),
-			"sg-joinlog-suppress-select" => HandleJoinlogSuppressConfigurationAsync(e),
-
-			_ => Task.CompletedTask
-		};
-
-
-		public async Task HandleJoinlogConfigurationAsync(ComponentInteractionCreateEventArgs e)
-		{
-			await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
-
-			if ((await e.Guild.GetMemberAsync(e.User.Id)).Permissions.HasPermission(Permissions.ManageGuild))
+			if (e.Values?.First() is not "0")
 			{
-				DiscordChannel channel = null;
-				GuildConfig config = await configCollection.FindOrCreateConfigAsync(e.Guild.Id);
+				channel = e.Guild.GetChannel(ulong.Parse(e.Values.First()));
 
-				if (e.Values?.First() is not "0")
+				if (channel is not null)
 				{
-					channel = e.Guild.GetChannel(ulong.Parse(e.Values.First()));
-
-					if (channel is not null)
-					{
-						config.JoinLogChannel = channel.Id;
-					}
+					config.JoinLogChannel = channel.Id;
 				}
-				else
-				{
-					config.JoinLogChannel = default;
-				}
-
-				await configCollection.SetJoinlogAsync(config);
-
-				await e.Interaction.CreateFollowupMessageAsync(new()
-				{
-					Content = $"({e.User.Mention}) Edited Joinlog channel to {channel?.Mention ?? "None"}.",
-					IsEphemeral = true
-				});
-
-				e.Handled = true;
 			}
-		}
-
-		public async Task HandleBanlogConfigurationAsync(ComponentInteractionCreateEventArgs e)
-		{
-			await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
-
-			if ((await e.Guild.GetMemberAsync(e.User.Id)).Permissions.HasPermission(Permissions.ManageGuild))
+			else
 			{
-				DiscordChannel channel = null;
-				GuildConfig config = await configCollection.FindOrCreateConfigAsync(e.Guild.Id);
-
-				if (e.Values?.First() is not "0")
-				{
-					channel = e.Guild.GetChannel(ulong.Parse(e.Values.First()));
-
-					if (channel is not null)
-					{
-						config.BanLogChannel = channel.Id;
-					}
-				}
-				else
-				{
-					config.JoinLogChannel = default;
-				}
-
-				await configCollection.SetJoinlogAsync(config);
-
-				await e.Interaction.CreateFollowupMessageAsync(new()
-				{
-					Content = $"({e.User.Mention}) Edited Banlog channel to {channel?.Mention ?? "None"}.",
-					IsEphemeral = true
-				});
-
-				e.Handled = true;
+				config.JoinLogChannel = default;
 			}
-		}
 
-		public async Task HandleAutobanConfigurationAsync(ComponentInteractionCreateEventArgs e)
-		{
-			await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+			await _configCollection.SetJoinlogAsync(config);
 
-			if ((await e.Guild.GetMemberAsync(e.User.Id)).Permissions.HasPermission(Permissions.ManageGuild))
+			await e.Interaction.CreateFollowupMessageAsync(new()
 			{
-				string value = e.Values.First();
-				GuildConfig config = await configCollection.FindOrCreateConfigAsync(e.Guild.Id);
+				Content = $"({e.User.Mention}) Edited Joinlog channel to {channel?.Mention ?? "None"}.",
+				IsEphemeral = true
+			});
 
-				config.AutoBanBlacklisted = value switch
-				{
-					"0" => false,
-					"1" => true,
-					_ => config.AutoBanBlacklisted
-				};
-
-				await configCollection.SetJoinlogAsync(config);
-
-				await e.Interaction.CreateFollowupMessageAsync(new()
-				{
-					Content = $"({e.User.Mention}) Autoban setting is now {(config.AutoBanBlacklisted ? "on" : "off")}.",
-					IsEphemeral = true
-				});
-
-				e.Handled = true;
-			}
+			e.Handled = true;
 		}
+	}
 
-		public async Task HandleJoinlogSuppressConfigurationAsync(ComponentInteractionCreateEventArgs e)
+	public async Task HandleBanlogConfigurationAsync(ComponentInteractionCreateEventArgs e)
+	{
+		await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+
+		if ((await e.Guild.GetMemberAsync(e.User.Id)).Permissions.HasPermission(Permissions.ManageGuild))
 		{
-			await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+			DiscordChannel channel = null;
+			GuildConfig config = await _configCollection.FindOrCreateConfigAsync(e.Guild.Id);
 
-			if ((await e.Guild.GetMemberAsync(e.User.Id)).Permissions.HasPermission(Permissions.ManageGuild))
+			if (e.Values?.First() is not "0")
 			{
-				string value = e.Values.First();
-				GuildConfig config = await configCollection.FindOrCreateConfigAsync(e.Guild.Id);
+				channel = e.Guild.GetChannel(ulong.Parse(e.Values.First()));
 
-				config.SuppressJoinlogCleanRecords = value switch
+				if (channel is not null)
 				{
-					"0" => false,
-					"1" => true,
-					_ => config.SuppressJoinlogCleanRecords
-				};
-
-				await configCollection.SetJoinlogAsync(config);
-
-				await e.Interaction.CreateFollowupMessageAsync(new()
-				{
-					Content = config.SuppressJoinlogCleanRecords
-						? "All clean records will now be suppressed from displaying in Joinlog."
-						: "All records will now be displayed in Joinlog.",
-
-					IsEphemeral = true
-				});
-
-				e.Handled = true;
+					config.BanLogChannel = channel.Id;
+				}
 			}
+			else
+			{
+				config.JoinLogChannel = default;
+			}
+
+			await _configCollection.SetJoinlogAsync(config);
+
+			await e.Interaction.CreateFollowupMessageAsync(new()
+			{
+				Content = $"({e.User.Mention}) Edited Banlog channel to {channel?.Mention ?? "None"}.",
+				IsEphemeral = true
+			});
+
+			e.Handled = true;
+		}
+	}
+
+	public async Task HandleAutobanConfigurationAsync(ComponentInteractionCreateEventArgs e)
+	{
+		await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+
+		if ((await e.Guild.GetMemberAsync(e.User.Id)).Permissions.HasPermission(Permissions.ManageGuild))
+		{
+			string value = e.Values.First();
+			GuildConfig config = await _configCollection.FindOrCreateConfigAsync(e.Guild.Id);
+
+			config.AutoBanBlacklisted = value switch
+			{
+				"0" => false,
+				"1" => true,
+				_ => config.AutoBanBlacklisted
+			};
+
+			await _configCollection.SetJoinlogAsync(config);
+
+			await e.Interaction.CreateFollowupMessageAsync(new()
+			{
+				Content = $"({e.User.Mention}) Autoban setting is now {(config.AutoBanBlacklisted ? "on" : "off")}.",
+				IsEphemeral = true
+			});
+
+			e.Handled = true;
+		}
+	}
+
+	public async Task HandleJoinlogSuppressConfigurationAsync(ComponentInteractionCreateEventArgs e)
+	{
+		await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+
+		if ((await e.Guild.GetMemberAsync(e.User.Id)).Permissions.HasPermission(Permissions.ManageGuild))
+		{
+			string value = e.Values.First();
+			GuildConfig config = await _configCollection.FindOrCreateConfigAsync(e.Guild.Id);
+
+			config.SuppressJoinlogCleanRecords = value switch
+			{
+				"0" => false,
+				"1" => true,
+				_ => config.SuppressJoinlogCleanRecords
+			};
+
+			await _configCollection.SetJoinlogAsync(config);
+
+			await e.Interaction.CreateFollowupMessageAsync(new()
+			{
+				Content = config.SuppressJoinlogCleanRecords
+					? "All clean records will now be suppressed from displaying in Joinlog."
+					: "All records will now be displayed in Joinlog.",
+
+				IsEphemeral = true
+			});
+
+			e.Handled = true;
 		}
 	}
 }

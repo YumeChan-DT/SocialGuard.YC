@@ -1,18 +1,17 @@
-﻿using DSharpPlus;
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using YumeChan.PluginBase.Tools.Data;
-using SocialGuard.YC.Data.Components;
-using SocialGuard.YC.Data.Models.Api;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
 using SocialGuard.YC.Services.Security;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using MongoDB.Driver;
-
-
+using SocialGuard.Common.Data.Models.Authentication;
+using System.Threading;
+using System.Text;
 
 namespace SocialGuard.YC.Modules
 {
@@ -23,13 +22,13 @@ namespace SocialGuard.YC.Modules
 		{
 			private readonly IMongoCollection<GuildConfig> guildConfig;
 			private readonly AuthApiService auth;
-			private readonly EncryptionService encryption;
+			private readonly IEncryptionService _encryption;
 
-			public GuildConfigModule(IDatabaseProvider<PluginManifest> database, AuthApiService auth, EncryptionService encryption)
+			public GuildConfigModule(IDatabaseProvider<PluginManifest> database, AuthApiService auth, IEncryptionService encryption)
 			{
 				guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 				this.auth = auth;
-				this.encryption = encryption;
+				_encryption = encryption;
 			}
 
 
@@ -47,6 +46,32 @@ namespace SocialGuard.YC.Modules
 				config.JoinLogChannel = channel.Id;
 				await guildConfig.SetJoinlogAsync(config);
 				await context.RespondAsync($"Join Log channel set to : {context.Guild.GetChannel(config.JoinLogChannel).Mention}.");
+			}
+
+			[Command("leavelog"), RequireUserPermissions(Permissions.ManageGuild)]
+			public async Task GetLeaveLogAsync(CommandContext context)
+			{
+				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
+				DiscordChannel current = context.Guild.GetChannel(config.LeaveLogChannel);
+
+				StringBuilder sb = new();
+				sb.AppendFormat($"Leave Log is currently **{(config.LeaveLogEnabled ? "on" : "off")}**.");
+
+				if (config.LeaveLogEnabled)
+				{
+					sb.AppendFormat($"\nCurrent Leave Log channel: {context.Guild.GetChannel(config.LeaveLogChannel)?.Mention ?? "None"}.");
+				}
+
+				await context.RespondAsync(sb.ToString());
+			}
+			[Command("leavelog")]
+			public async Task SetLeaveLogAsync(CommandContext context, string key, DiscordChannel channel)
+			{
+				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
+				config.LeaveLogEnabled = Utilities.ParseBoolParameter(key) ?? config.LeaveLogEnabled;
+				config.LeaveLogChannel = channel.Id;
+				await guildConfig.SetLeavelogAsync(config);
+				await context.RespondAsync($"Leave Log is now **{(config.LeaveLogEnabled ? "on" : "off")}**. Channel set to : {context.Guild.GetChannel(config.LeaveLogChannel).Mention}.");
 			}
 
 
@@ -73,7 +98,7 @@ namespace SocialGuard.YC.Modules
 				await context.Message.DeleteAsync();
 
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
-				config.ApiLogin = new(username, encryption.Encrypt(password));
+				config.ApiLogin = new() { Username = username, Password = _encryption.Encrypt(password) };
 
 				await guildConfig.SetLoginAsync(config);
 
@@ -121,8 +146,8 @@ namespace SocialGuard.YC.Modules
 			public async Task RegisterAsync(CommandContext context, string username, [EmailAddress] string email, string password)
 			{
 				await context.Message.DeleteAsync();
-				AuthRegisterCredentials credentials = new(username, email, password);
-				AuthResponse<IAuthComponent> result = await auth.RegisterNewUserAsync(credentials);
+				RegisterModel credentials = new() { Username = username, Email = email, Password = password };
+				Response result = await auth.RegisterNewUserAsync(credentials, CancellationToken.None);
 
 				await context.Channel.SendMessageAsync($"{context.User.Mention} {result.Status} : {result.Message}\n");
 			}

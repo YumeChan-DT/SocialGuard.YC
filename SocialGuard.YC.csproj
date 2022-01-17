@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Version>3.2</Version>
     <Authors>Sakura Akeno Isayeki</Authors>
     <Company>Nodsoft Systems</Company>
@@ -12,9 +12,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <OutDir>$(YumeChan_PluginsLocation)</OutDir>
-    <OutputPath>$(YumeChan_PluginsLocation)</OutputPath>
-    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <OutDir>$(YumeChan_PluginsLocation)\$(MSBuildProjectName)</OutDir>
+    <OutputPath>$(YumeChan_PluginsLocation)\$(MSBuildProjectName)</OutputPath>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,9 +24,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="IDoEverything.DSharpPlus.SlashCommands" Version="2.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
+    <PackageReference Include="Azure.Identity" Version="1.5.0" />
+    <PackageReference Include="Azure.Security.KeyVault.Keys" Version="4.3.0-beta.1" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.3.0-beta.1" />
+    <PackageReference Include="IDoEverything.DSharpPlus.SlashCommands" Version="2.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
+    <PackageReference Include="SocialGuard.Common" Version="3.0.1" />
     <PackageReference Include="YumeChan.PluginBase" Version="2.4.3">
       <IncludeAssets></IncludeAssets>
     </PackageReference>

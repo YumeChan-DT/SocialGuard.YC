@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using SocialGuard.Common.Data.Models.Authentication;
 using SocialGuard.YC.Data.Components;
 
 
@@ -12,14 +13,16 @@ namespace SocialGuard.YC.Data.Models.Config
 		public ulong Id { get; set; }
 
 		public ulong JoinLogChannel { get; set; }
+		public ulong LeaveLogChannel { get; set; }
 
 		public ulong BanLogChannel { get; set; }
 
 		public bool AutoBanBlacklisted { get; set; }
 		public bool SuppressJoinlogCleanRecords { get; set; }
+		public bool LeaveLogEnabled { get; set; }
 
-		public AuthCredentials ApiLogin { get; set; }
+		public LoginModel ApiLogin { get; set; }
 
-		public AuthToken Token { get; set; }
+		public TokenResult Token { get; set; }
 	}
 }

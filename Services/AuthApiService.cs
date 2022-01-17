@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
 using MongoDB.Driver;
+using SocialGuard.Common.Data.Models.Authentication;
+using SocialGuard.Common.Services;
 using SocialGuard.YC.Data.Components;
-using SocialGuard.YC.Data.Models.Api;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services.Security;
 using YumeChan.PluginBase.Tools;
@@ -13,81 +13,59 @@ using YumeChan.PluginBase.Tools.Data;
 
 
 
-namespace SocialGuard.YC.Services
+namespace SocialGuard.YC.Services;
+
+public class AuthApiService : AuthenticationClient
 {
-	public class AuthApiService
+	private readonly IEncryptionService _encryption;
+	private readonly IMongoCollection<GuildConfig> _guildConfig;
+
+	public AuthApiService(HttpClient httpClient, IConfigProvider<IApiConfig> configProvider, IEncryptionService encryption, IDatabaseProvider<PluginManifest> database) : base(httpClient)
 	{
-		private readonly HttpClient httpClient;
-		private readonly EncryptionService encryption;
-		private readonly IMongoCollection<GuildConfig> guildConfig;
+		httpClient.BaseAddress = new(configProvider.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig().ApiHost);
+		_encryption = encryption;
+		_guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
+	}
 
-		public AuthApiService(IHttpClientFactory httpFactory, IConfigProvider<IApiConfig> configProvider, EncryptionService encryption, IDatabaseProvider<PluginManifest> database)
+
+	public async Task<TokenResult> GetOrUpdateAuthTokenAsync(ulong guildId)
+	{
+		GuildConfig config = await _guildConfig.FindOrCreateConfigAsync(guildId);
+		LoginModel login = config.ApiLogin ?? throw new ApplicationException("Guild must first set API login (username/password).");
+
+		if (config.Token is TokenResult token && token.IsValid())
 		{
-			httpClient = httpFactory.CreateClient(nameof(PluginManifest));
-			httpClient.BaseAddress = new(configProvider.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig().ApiHost);
-			this.encryption = encryption;
-			guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
+			return token;
 		}
-
-
-		public async Task<AuthToken> GetOrUpdateAuthTokenAsync(ulong guildId)
+		else
 		{
-			GuildConfig config = await guildConfig.FindOrCreateConfigAsync(guildId);
-			AuthCredentials login = config.ApiLogin	?? throw new ApplicationException("Guild must first set API login (username/password).");
-
-			if (config.Token is AuthToken token && token.IsValid())
+			try
 			{
+				token = await LoginAsync(login.Username, _encryption.Decrypt(login.Password));
+
+				await _guildConfig.UpdateOneAsync(
+					Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
+					Builders<GuildConfig>.Update.Set(c => c.Token, token));
+
 				return token;
 			}
-			else
+			catch (HttpRequestException e) when (e.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
 			{
-				using HttpRequestMessage request = new(HttpMethod.Post, "/api/v3/auth/login")
-				{
-					Content = JsonContent.Create(new AuthCredentials(login.Username, encryption.Decrypt(login.Password)), options: Utilities.SerializerOptions)
-				};
-
-				using HttpResponseMessage response = await httpClient.SendAsync(request);
-
-				if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
-				{
-					throw new UnauthorizedAccessException("Authentication Failed. Please check and update your credentials.");
-				}
-				else
-				{
-					token = (await response.Content.ReadFromJsonAsync<AuthResponse<AuthToken>>(Utilities.SerializerOptions)).Details;
-
-					await guildConfig.UpdateOneAsync(
-						Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
-						Builders<GuildConfig>.Update.Set(c => c.Token, token));
-
-					return token;
-				}
+				throw new UnauthorizedAccessException(e.Message, e);
 			}
 		}
+	}
 
-		public async Task ClearTokenAsync(ulong guildId)
+	public async Task ClearTokenAsync(ulong guildId)
+	{
+		GuildConfig config = await _guildConfig.FindOrCreateConfigAsync(guildId);
+
+		if (config.Token is not null)
 		{
-			GuildConfig config = await guildConfig.FindOrCreateConfigAsync(guildId);
-
-			if (config.Token is not null)
-			{
-				await guildConfig.UpdateOneAsync(
-					Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
-					Builders<GuildConfig>.Update.Set(c => c.Token, null)
-				);
-			}
-		}
-
-
-		public async Task<AuthResponse<IAuthComponent>> RegisterNewUserAsync(AuthRegisterCredentials registerDetails)
-		{
-			using HttpRequestMessage request = new(HttpMethod.Post, "/api/v3/auth/register")
-			{
-				Content = JsonContent.Create(registerDetails)
-			};
-
-			using HttpResponseMessage response = await httpClient.SendAsync(request);
-			return await response.Content.ReadFromJsonAsync<AuthResponse<IAuthComponent>>();
+			await _guildConfig.UpdateOneAsync(
+				Builders<GuildConfig>.Filter.Eq(c => c.Id, config.Id),
+				Builders<GuildConfig>.Update.Set(c => c.Token, null)
+			);
 		}
 	}
 }
