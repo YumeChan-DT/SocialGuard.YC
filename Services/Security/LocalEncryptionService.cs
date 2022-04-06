@@ -11,10 +11,10 @@ namespace SocialGuard.YC.Services.Security;
 public class LocalEncryptionService : IEncryptionService
 {
 	private readonly string encryptionKey;
-	private static readonly byte[] salt = new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 };
+	private static readonly byte[] salt = { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 };
 
 
-	public LocalEncryptionService(IConfigProvider<IApiConfig> configProvider)
+	public LocalEncryptionService(IInterfaceConfigProvider<IApiConfig> configProvider)
 	{
 		encryptionKey = configProvider.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig().EncryptionKey;
 	}

@@ -20,7 +20,8 @@ public class AuthApiService : AuthenticationClient
 	private readonly IEncryptionService _encryption;
 	private readonly IMongoCollection<GuildConfig> _guildConfig;
 
-	public AuthApiService(HttpClient httpClient, IConfigProvider<IApiConfig> configProvider, IEncryptionService encryption, IDatabaseProvider<PluginManifest> database) : base(httpClient)
+	public AuthApiService(HttpClient httpClient, IInterfaceConfigProvider<IApiConfig> configProvider, IEncryptionService encryption, IDatabaseProvider<PluginManifest> database) 
+		: base(httpClient)
 	{
 		httpClient.BaseAddress = new(configProvider.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig().ApiHost);
 		_encryption = encryption;

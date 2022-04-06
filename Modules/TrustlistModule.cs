@@ -46,7 +46,7 @@ namespace SocialGuard.YC.Modules
 				await InsertUserAsync(context, user, level, reason, true);
 			}
 
-			private async Task InsertUserAsync(CommandContext context, DiscordUser user, byte level, string reason, bool banUser = false)
+			private async Task InsertUserAsync(CommandContext context, DiscordUser user, byte level, string reason, bool banUser)
 			{
 				if (user?.Id == context.User.Id)
 				{

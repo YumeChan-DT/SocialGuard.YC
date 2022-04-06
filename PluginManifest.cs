@@ -10,6 +10,7 @@ using SocialGuard.YC.Services;
 using SocialGuard.YC.Services.Security;
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using YumeChan.PluginBase;
@@ -32,7 +33,7 @@ public class PluginManifest : Plugin
 	internal static string VersionString { get; private set; }
 
 
-	public PluginManifest(ILogger<PluginManifest> logger, IConfigProvider<IApiConfig> configProvider,
+	public PluginManifest(ILogger<PluginManifest> logger, IApiConfig config,
 		BroadcastsListener broadcastsListener, GuildTrafficHandler guildTrafficHandler, ComponentInteractionsListener componentInteractionsListener)
 	{
 		VersionString ??= Version;
@@ -40,7 +41,7 @@ public class PluginManifest : Plugin
 		_broadcastsListener = broadcastsListener;
 		_guildTrafficHandler = guildTrafficHandler;
 		_componentInteractionsListener = componentInteractionsListener;
-		_apiConfig = configProvider.InitConfig(ApiConfigFileName).PopulateApiConfig();
+		_apiConfig = config;
 	}
 
 	public override async Task LoadAsync()
@@ -77,7 +78,7 @@ public class DependencyRegistrations : DependencyInjectionHandler
 	{
 		services.AddHttpClient<RestClientBase>((services, client) => client.BaseAddress = new(services.GetService<IApiConfig>().ApiHost));
 
-		services.AddSingleton<IEncryptionService>((services) =>
+		services.AddSingleton<IEncryptionService>(services =>
 		{
 			if (services.GetRequiredService<IApiConfig>().AzureIdentity is not null)
 			{
@@ -95,9 +96,19 @@ public class DependencyRegistrations : DependencyInjectionHandler
 			.AddSingleton<GuildTrafficHandler>()
 			.AddSingleton<BroadcastsListener>()
 			.AddSingleton<ComponentInteractionsListener>()
-			.AddSingleton<TrustlistClient>()
-			.AddSingleton<EmitterClient>()
+			.AddSingleton(services =>
+			{
+				TrustlistClient client = ActivatorUtilities.CreateInstance<TrustlistClient>(services);
+				client.SetBaseUri(new(services.GetRequiredService<IApiConfig>().ApiHost));
+				return client;
+			})
+			.AddSingleton(services =>
+			{
+				EmitterClient client = ActivatorUtilities.CreateInstance<EmitterClient>(services);
+				client.SetBaseUri(new(services.GetRequiredService<IApiConfig>().ApiHost));
+				return client;
+			})
 			.AddSingleton<AuthApiService>()
-			.AddSingleton((services) => services.GetRequiredService<IConfigProvider<IApiConfig>>().InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig());
+			.AddSingleton(s => s.GetRequiredService<IInterfaceConfigProvider<IApiConfig>>().InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig());
 	}
 }

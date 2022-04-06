@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Version>3.3</Version>
+    <Version>3.3.1</Version>
     <Authors>Sakura Akeno Isayeki</Authors>
     <Company>Nodsoft Systems</Company>
     <Product>NSYS SocialGuard (YC)</Product>
@@ -25,17 +25,19 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.5.0" />
-    <PackageReference Include="Azure.Security.KeyVault.Keys" Version="4.3.0-beta.1" />
-    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.3.0-beta.1" />
-    <PackageReference Include="IDoEverything.DSharpPlus.SlashCommands" Version="2.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="6.0.0" />
+    <PackageReference Include="Azure.Security.KeyVault.Keys" Version="4.3.0" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.3.0" />
+    <PackageReference Include="DSharpPlus.SlashCommands" Version="4.2.0-nightly-01102" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="6.0.3" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
-    <PackageReference Include="SocialGuard.Common" Version="3.0.1" />
-    <PackageReference Include="YumeChan.PluginBase" Version="2.4.3">
-      <IncludeAssets></IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="SocialGuard.Common" Version="3.1.0-rc2" />
+    <PackageReference Include="YumeChan.PluginBase" Version="2.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SocialGuard\SocialGuard.Common\SocialGuard.Common.csproj" />
   </ItemGroup>
 
 </Project>

@@ -27,7 +27,7 @@ public class BroadcastsListener : IHostedService
 	private readonly HubConnection _hubConnection;
 	private readonly IMongoCollection<GuildConfig> _guildConfig;
 
-	public BroadcastsListener(ILogger<BroadcastsListener> logger, IConfigProvider<IApiConfig> configProvider,
+	public BroadcastsListener(ILogger<BroadcastsListener> logger, IInterfaceConfigProvider<IApiConfig> configProvider,
 		DiscordClient discordClient, IDatabaseProvider<PluginManifest> database, TrustlistClient trustlistUserApiService)
 	{
 		IApiConfig config = configProvider.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig();
