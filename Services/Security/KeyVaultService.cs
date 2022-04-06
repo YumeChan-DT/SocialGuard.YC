@@ -21,7 +21,7 @@ internal class KeyVaultService : IEncryptionService
 	private CryptographyClient _cryptographyClient;
 
 #if !DEBUG
-		internal protected const string PasswordEncryptionKeyName = "PasswordEncryption";
+	internal protected const string PasswordEncryptionKeyName = "PasswordEncryption";
 #else
 	internal protected const string PasswordEncryptionKeyName = "DEV-PasswordEncryption";
 #endif
