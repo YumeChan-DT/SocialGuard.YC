@@ -6,9 +6,12 @@
     <Authors>Sakura Akeno Isayeki</Authors>
     <Company>Nodsoft Systems</Company>
     <Product>NSYS SocialGuard (YC)</Product>
+    <Description>SocialGuard Plugin for YumeChan</Description>
     <Copyright>GNU LGPLv3</Copyright>
     <RepositoryType>Git</RepositoryType>
     <RepositoryUrl>https://github.com/YumeChan-DT/SocialGuard.YC</RepositoryUrl>
+    <PackageIconUrl>https://socialguard.net/assets/icons/android-chrome-512x512.png</PackageIconUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <PropertyGroup>
