@@ -24,6 +24,7 @@
     <None Remove=".git" />
     <None Remove=".gitignore" />
     <None Remove="LICENSE" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,5 +43,4 @@
   <ItemGroup>
     <ProjectReference Include="..\SocialGuard\SocialGuard.Common\SocialGuard.Common.csproj" />
   </ItemGroup>
-
 </Project>
