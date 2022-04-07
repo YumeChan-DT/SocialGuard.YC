@@ -6,6 +6,9 @@ on:
       main
   workflow_dispatch:
 
+env:
+  YumeChan_PluginsLocation: ~/build
+
 jobs:
   publish-artifact:
     runs-on: ubuntu-latest

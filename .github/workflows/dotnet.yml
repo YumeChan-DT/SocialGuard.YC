@@ -4,6 +4,10 @@ on:
   - push
   - pull_request
 
+
+env:
+  YumeChan_PluginsLocation: ~/build
+
 jobs:
   build:
 
@@ -22,6 +26,6 @@ jobs:
 
     - name: Build
       run: dotnet build --no-restore
-      
+
     - name: Test
       run: dotnet test --no-build --verbosity normal
