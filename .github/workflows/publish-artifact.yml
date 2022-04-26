@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  YumeChan_PluginsLocation: ~/build
+  YumeChan_PluginsLocation: build
 
 jobs:
   publish-artifact:
@@ -30,4 +30,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: dotnet-build-release
-          path: "publish"
+          path: "build"
