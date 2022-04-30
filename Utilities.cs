@@ -9,8 +9,10 @@ using DSharpPlus.Entities;
 using DSharpPlus;
 using MongoDB.Driver;
 using System.Collections.Generic;
+using System.Security.Claims;
 using SocialGuard.YC.Data.Models;
 using DSharpPlus.SlashCommands;
+using Microsoft.AspNetCore.Components.Authorization;
 using SocialGuard.Common.Services;
 
 
@@ -153,4 +155,11 @@ public static class Utilities
 		EmitterType.Server => "Server",
 		_ => "Unknown"
 	};
+
+	public static async Task<ulong?> GetUserSnowflakeAsync(this AuthenticationStateProvider authenticationStateProvider) 
+		=> (await authenticationStateProvider.GetAuthenticationStateAsync()).User is { } user
+		&& user.FindFirst(ClaimTypes.NameIdentifier) is { } claim
+		&& ulong.TryParse(claim.Value, out ulong snowflake)
+			? snowflake
+			: null;
 }

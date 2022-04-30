@@ -1,0 +1,22 @@
+﻿@layout Components.PanelLayout
+@inject IJSRuntime JsRuntime
+
+@page "/config/{GuildIdStr}"
+
+<h3>ConfigIndex</h3>
+
+@GuildIdStr
+
+@code {
+	[Parameter] public string GuildIdStr { get; set; }
+
+	protected override Task OnAfterRenderAsync(bool firstRender) 
+	{
+		if (firstRender)
+		{
+			JsRuntime.InvokeVoidAsync("loadCss", "css/sg-config.css");
+		}
+
+		return base.OnInitializedAsync();
+	}
+}	

@@ -1,0 +1,75 @@
+﻿@page "/"
+@layout PanelLayout
+
+@using System.Collections.Immutable
+@using SocialGuard.YC.Components
+@inject DiscordClient Client;
+@inject AuthenticationStateProvider AuthStateProvider;
+
+<h1 class="my-5">NSYS SocialGuard for YumeChan</h1>
+
+<AuthorizeView>
+	<Authorized>
+		<div class="my-5">
+			<h2>Servers you manage <span class="ms-5 text-muted small">(Count: @_userManagedGuilds.Count.ToString())</span></h2>
+			
+			<div class="d-flex flex-column bd-highlight my-5">
+				<div class="p-2 bd-highlight text-center">
+					<div class="row align-items-stretch g-4">
+						@foreach (DiscordGuild guild in _userManagedGuilds)
+						{
+							<div class="col-lg-4 col-md-6 d-flex flex-column flex-grow-0">
+								@GuildCard(guild)
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+	</Authorized>
+
+	<NotAuthorized>
+		<div class="alert alert-primary">
+			Please <a href="/login">login</a> to configure SocialGuard for YC on your servers.
+		</div>
+	</NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+
+	ImmutableList<DiscordGuild> _userManagedGuilds;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+
+		if (await AuthStateProvider.GetUserSnowflakeAsync() is { } userId)
+		{
+			_userManagedGuilds = (from g in Client.Guilds
+			                     let m = g.Value.Members.GetValueOrDefault(userId)
+			                     where m is not null && ((m.Permissions & Permissions.ManageGuild) is not 0 || (m.Permissions & Permissions.Administrator) is not 0)
+			                     select g.Value).ToImmutableList();
+		}
+	}
+
+
+	private RenderFragment<DiscordGuild> GuildCard { get; } = guild => __builder =>
+	{
+		<div class="card bg-body border-light p-4 flex-grow-1" id="@guild.Id.ToString()">
+			<div class="flex-grow" id="title">
+				<h3 class="flex-grow-1" style="white-space: nowrap">@guild.Name</h3>
+			</div>
+
+			@if (guild.IconUrl is { })
+			{
+				<div class="m-3 img-fluid ratio-1x1" id="icon">
+					<img alt="Server Icon" src="@guild.IconUrl" />
+				</div>
+			}
+
+			<a class="stretched-link" href="config/@guild.Id"></a>
+		</div>
+	};
+
+}

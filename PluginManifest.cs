@@ -22,6 +22,9 @@ public class PluginManifest : Plugin
 {
 	public override string DisplayName => "NSYS SocialGuard (YC)";
 	public override bool StealthMode => false;
+
+	public override bool ShouldUseNetRunner => true;
+
 	internal const string ApiConfigFileName = "api";
 
 	private readonly IApiConfig _apiConfig;
