@@ -20,13 +20,13 @@ namespace SocialGuard.YC.Modules
 		public class TrustlistSlashModule : ApplicationCommandModule
 		{
 			private readonly TrustlistClient _trustlist;
-			private readonly AuthApiService auth;
+			private readonly ApiAuthService _apiAuth;
 			private readonly IMongoCollection<GuildConfig> guildConfig;
 
-			public TrustlistSlashModule(TrustlistClient trustlist, AuthApiService auth, IDatabaseProvider<PluginManifest> databaseProvider)
+			public TrustlistSlashModule(TrustlistClient trustlist, ApiAuthService apiAuth, IDatabaseProvider<PluginManifest> databaseProvider)
 			{
 				_trustlist = trustlist;
-				this.auth = auth;
+				this._apiAuth = apiAuth;
 				guildConfig = databaseProvider.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 			}
 
@@ -88,7 +88,7 @@ namespace SocialGuard.YC.Modules
 							{
 								EscalationLevel = level,
 								EscalationNote = reason
-							}, (await auth.GetOrUpdateAuthTokenAsync(context.Guild.Id)).Token);
+							}, (await _apiAuth.GetOrUpdateAuthTokenAsync(context.Guild.Id)).Token);
 
 							string userMention = (user as DiscordMember)?.Mention ?? user.Id.ToString();
 							DiscordEmbed embed = await _trustlist.GetLookupEmbedAsync(user);

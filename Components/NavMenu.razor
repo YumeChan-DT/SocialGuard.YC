@@ -48,7 +48,7 @@
 </div>
 
 @code {
-	ImmutableList<DiscordGuild> _userManagedGuilds;
+	IReadOnlyList<DiscordGuild> _userManagedGuilds = new List<DiscordGuild>();
 
 	ulong _selectedGuildId;
 	

@@ -111,7 +111,7 @@ public class DependencyRegistrations : DependencyInjectionHandler
 				client.SetBaseUri(new(services.GetRequiredService<IApiConfig>().ApiHost));
 				return client;
 			})
-			.AddSingleton<AuthApiService>()
+			.AddSingleton<ApiAuthService>()
 			.AddSingleton(s => s.GetRequiredService<IInterfaceConfigProvider<IApiConfig>>().InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig());
 	}
 }

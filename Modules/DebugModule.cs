@@ -20,19 +20,19 @@ namespace SocialGuard.YC.Modules
 		{
 			private readonly IMongoCollection<GuildConfig> guildConfig;
 			private readonly ILogger<DebugModule> logger;
-			private readonly AuthApiService authService;
+			private readonly ApiAuthService _apiAuthService;
 
-			public DebugModule(ILogger<DebugModule> logger, AuthApiService authService, IDatabaseProvider<PluginManifest> database)
+			public DebugModule(ILogger<DebugModule> logger, ApiAuthService apiAuthService, IDatabaseProvider<PluginManifest> database)
 			{
 				guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 				this.logger = logger;
-				this.authService = authService;
+				this._apiAuthService = apiAuthService;
 			}
 
 			[Command("clear-token"), RequireUserPermissions(Permissions.Administrator)]
 			public async Task ClearTokenAsync(CommandContext ctx)
 			{
-				await authService.ClearTokenAsync(ctx.Guild.Id);
+				await _apiAuthService.ClearTokenAsync(ctx.Guild.Id);
 				await ctx.RespondAsync("Auth Token successfully cleared.");
 				logger.LogDebug("Auth Token force-cleared for guild {guildId}.", ctx.Guild.Id);
 			}
@@ -40,8 +40,8 @@ namespace SocialGuard.YC.Modules
 			[Command("force-login")]
 			public async Task ForceLoginAsync(CommandContext ctx)
 			{
-				await authService.ClearTokenAsync(ctx.Guild.Id);
-				await authService.GetOrUpdateAuthTokenAsync(ctx.Guild.Id);
+				await _apiAuthService.ClearTokenAsync(ctx.Guild.Id);
+				await _apiAuthService.GetOrUpdateAuthTokenAsync(ctx.Guild.Id);
 				await ctx.RespondAsync("Auth Token successfully refreshed.");
 				logger.LogDebug("Auth Token refreshed for guild {guildId}.", ctx.Guild.Id);
 			}

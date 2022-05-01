@@ -1,0 +1,146 @@
+﻿@page "/config/{GuildIdStr}"
+@layout PanelLayout
+
+@using SocialGuard.YC.Data.Models.Config
+
+@inject DiscordClient BotClient
+@inject GuildConfigService ConfigService
+
+@* TODO: Add Authorization. *@
+
+@if (_guild is not null)
+{
+	<div class="d-flex flex-md-row justify-content-between m-3 mb-5">
+		<div><h1><i class="bi-wrench me-3"></i> Trustlist Configuration</h1></div>
+	
+		<div id="guild-display" class="d-flex flex-row">
+			@if (@_guild.GetIconUrl(ImageFormat.WebP, 128) is { } iconUrl)
+			{
+				<div id="guild-img"><img alt="Server Icon" src="@iconUrl" class="rounded-circle" /></div>
+			}
+
+			<div>
+				<div id="guild-name"><h5>@_guild.Name</h5></div>
+                <div id="guild-id" class="small text-muted">ID: @_guild.Id.ToString()</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	<hr class="my-5" />
+	
+	@if (_displaySaveAlert)
+	{
+		<div class="alert alert-success my-3">
+			<p class="my-0"><i class="bi-check-circle me-3"></i> Changes to Trustlist configuration were saved successfully.</p>
+		</div>
+	}
+	                
+	@if (_config is not null)
+	{
+		<EditForm Model="_config" OnValidSubmit="OnValidSubmitAsync">
+			<div id="config" class="row gap-xl-3 my-5">
+				<div id="join-leave-logs" class="col-xl-4 col-lg-6">
+					<h3><i class="bi-person-plus-fill me-3"></i> Join/Leave Logs</h3>
+				
+					<div class="my-3">
+						<label class="form-label">Join Log channel</label>
+						
+						<select @bind="@_config.JoinLogChannel" class="form-select">
+							<option value="0" selected>(None)</option>
+							@foreach (KeyValuePair<ulong, DiscordChannel> channel in _guild.Channels
+								.Where(c => c.Value.Type is ChannelType.Text)
+								.OrderBy(c => c.Value.Name))
+							{
+								<option value="@channel.Key.ToString()" selected="@(channel.Key == _config.JoinLogChannel)">@channel.Value.Name</option>
+							}
+						</select>
+					</div>
+					
+					<div class="form-check my-3">
+						<InputCheckbox class="form-check-input" @bind-Value=_config.SuppressJoinlogCleanRecords />
+						<label class="form-check-label">Suppress <span class="text-success">Clean (N+0)</span> records from Join Log</label>
+					</div>
+					
+					<div class="my-3">
+						<div class="d-flex flex-row justify-content-between">
+							<label class="form-label">Leave Log channel</label>
+							
+							<div>
+								<label class="form-check-label mx-2">Enable</label>
+								<InputCheckbox class="form-check-input" @bind-Value=_config.LeaveLogEnabled />
+							</div>
+						</div>
+						
+						<select @bind="@_config.LeaveLogChannel" class="form-select" disabled="@(!_config.LeaveLogEnabled)">
+							<option value="0" selected>(None)</option>
+							@foreach (KeyValuePair<ulong, DiscordChannel> channel in _guild.Channels
+								.Where(c => c.Value.Type is ChannelType.Text)
+								.OrderBy(c => c.Value.Name))
+							{
+								<option value="@channel.Key.ToString()" selected="@(channel.Key == _config.LeaveLogChannel)">@channel.Value.Name</option>
+							}
+						</select>
+					</div>
+				</div>
+				
+				<div id="join-leave-logs" class="col-xl-4 col-lg-6">
+					<h3><i class="bi-shield-fill-x me-3"></i> Ban Logs</h3>
+                
+					<div class="my-3">
+						<label class="form-label">Ban Log channel</label>
+						<select @bind="@_config.BanLogChannel" class="form-select">
+							<option value="0" selected>(None)</option>
+							@foreach (KeyValuePair<ulong, DiscordChannel> channel in _guild.Channels
+								.Where(c => c.Value.Type is ChannelType.Text)
+								.OrderBy(c => c.Value.Name))
+							{
+								<option value="@channel.Key.ToString()" selected="@(channel.Key == _config.BanLogChannel)">@channel.Value.Name</option>
+							}
+						</select>
+					</div>
+                	
+					<div class="form-check my-3">
+						<InputCheckbox class="form-check-input" @bind-Value="_config.AutoBanBlacklisted" />
+						<label class="form-check-label">Automatically ban all <span class="text-danger">Dangerous (N+3)</span> users</label>
+					</div>
+				</div>
+			</div>
+			
+			<div>
+				<button type="submit" class="btn btn-success px-5">Save</button>
+			</div>
+		</EditForm>
+	}
+	
+}
+else
+{
+	<div class="alert alert-warning m-3">No Server found for ID <span class="font-monospace">@GuildIdStr</span>.</div>
+}
+
+@code {
+	[Parameter] public string? GuildIdStr { get; set; }
+	
+	private DiscordGuild? _guild;
+	private GuildConfig? _config;
+	
+	private bool _displaySaveAlert;
+	
+	protected override async Task OnParametersSetAsync()
+	{
+		await base.OnParametersSetAsync();
+
+		if (ulong.TryParse(GuildIdStr, out ulong guildId) && BotClient.Guilds.TryGetValue(guildId, out DiscordGuild? guild))
+		{
+			_config = await ConfigService.GetGuildConfigAsync(guildId);
+			_guild = guild;
+		}
+	}
+
+	private async Task OnValidSubmitAsync()
+	{
+		await ConfigService.SetGuildConfigAsync(_config!);
+		_displaySaveAlert = true;
+	}
+}

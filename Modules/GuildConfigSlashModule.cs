@@ -26,13 +26,13 @@ namespace SocialGuard.YC.Modules
 			internal static DiscordSelectComponentOption EmptySelectionOption { get; } = new("None", "0", null, true);
 
 			private readonly IMongoCollection<GuildConfig> guildConfig;
-			private readonly AuthApiService auth;
+			private readonly ApiAuthService _apiAuth;
 			private readonly IEncryptionService encryption;
 
-			public GuildConfigSlashModule(IDatabaseProvider<PluginManifest> database, AuthApiService auth, IEncryptionService encryption)
+			public GuildConfigSlashModule(IDatabaseProvider<PluginManifest> database, ApiAuthService apiAuth, IEncryptionService encryption)
 			{
 				guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
-				this.auth = auth;
+				this._apiAuth = apiAuth;
 				this.encryption = encryption;
 			}
 
@@ -63,7 +63,7 @@ namespace SocialGuard.YC.Modules
 				await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new() { IsEphemeral = true });
 
 				RegisterModel credentials = new() { Username = username, Email = email, Password = password };
-				Response result = await auth.RegisterNewUserAsync(credentials, CancellationToken.None);
+				Response result = await _apiAuth.RegisterNewUserAsync(credentials, CancellationToken.None);
 
 				await ctx.FollowUpAsync($"{ctx.User.Mention} {result.Status} : {result.Message}\n");
 			}

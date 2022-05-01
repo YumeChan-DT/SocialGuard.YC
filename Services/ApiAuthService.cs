@@ -15,12 +15,12 @@ using YumeChan.PluginBase.Tools.Data;
 
 namespace SocialGuard.YC.Services;
 
-public class AuthApiService : AuthenticationClient
+public class ApiAuthService : AuthenticationClient
 {
 	private readonly IEncryptionService _encryption;
 	private readonly IMongoCollection<GuildConfig> _guildConfig;
 
-	public AuthApiService(HttpClient httpClient, IInterfaceConfigProvider<IApiConfig> configProvider, IEncryptionService encryption, IDatabaseProvider<PluginManifest> database) 
+	public ApiAuthService(HttpClient httpClient, IInterfaceConfigProvider<IApiConfig> configProvider, IEncryptionService encryption, IDatabaseProvider<PluginManifest> database) 
 		: base(httpClient)
 	{
 		httpClient.BaseAddress = new(configProvider.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig().ApiHost);
