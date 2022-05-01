@@ -1,43 +1,68 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <div class="navbar-brand">
-            <span>NSYS SocialGuard for YumeChan</span>
-        </div>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
+﻿@using System.Collections.Immutable
+@inject DiscordClient Client;
+@inject AuthenticationStateProvider AuthStateProvider;
+
+<div class="top-row ps-3 navbar navbar-dark">
+	<div class="container-fluid">
+		<div class="navbar-brand my-3">
+			<span>SocialGuard for YC</span>
+		</div>
+	</div>
 </div>
 
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <i class="bi bi-house-fill me-2" aria-hidden="true"></i>Home
-            </NavLink>
-        </div>
+<div>
+	<div class="flex-column my-3">
+		<div class="nav-item px-3 py-3">
+			<select @bind="@_selectedGuildId" class="form-select px-3 py-2">
+				<option value="0" selected>Select a server</option>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="user">
-                <i class="bi bi-person-lines-fill me-2" aria-hidden="true"></i>Users Records
-            </NavLink>
-        </div>
+				@foreach (DiscordGuild guild in _userManagedGuilds)
+				{
+					<option value="@guild.Id.ToString()">@guild.Name</option>
+				}
+			</select>
+		</div>
+	</div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="emitter">
-                <i class="bi bi-patch-check-fill me-2" aria-hidden="true"></i>Emitters
-            </NavLink>
-        </div>
-    </nav>
+	<nav class="flex-column">
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+				<i aria-hidden="true" class="bi bi-house-fill me-2"></i>Home
+			</NavLink>
+		</div>
+
+		@if (_selectedGuildId is not 0)
+		{
+			<div class="nav-item px-3">
+				<NavLink class="nav-link" href=@($"config/{_selectedGuildId.ToString()}")>
+					<i aria-hidden="true" class="bi bi-wrench me-2"></i>Trustlist Configuration
+				</NavLink>
+			</div>
+			<div class="nav-item px-3">
+				<NavLink class="nav-link" href=@($"auth/{_selectedGuildId.ToString()}")>
+					<i aria-hidden="true" class="bi bi-key-fill me-2"></i>Emitter Authentication
+				</NavLink>
+			</div>
+		}
+	</nav>
 </div>
 
 @code {
-    private bool collapseNavMenu = true;
+	ImmutableList<DiscordGuild> _userManagedGuilds;
 
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+	ulong _selectedGuildId;
+	
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
 
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
+		if (await AuthStateProvider.GetUserSnowflakeAsync() is { } userId)
+		{
+			_userManagedGuilds = (from g in Client.Guilds
+			                      let m = g.Value.Members.GetValueOrDefault(userId)
+			                      where m is not null && ((m.Permissions & Permissions.ManageGuild) is not 0 || (m.Permissions & Permissions.Administrator) is not 0)
+			                      select g.Value).ToImmutableList();
+		}
+	}
+
 }
