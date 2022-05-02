@@ -1,0 +1,177 @@
+﻿@page "/auth/{GuildIdStr}"
+@using SocialGuard.YC.Data.Models.Config
+@layout PanelLayout
+
+@using SocialGuard.YC.Data.Models.Config
+@using SocialGuard.YC.Infrastructure.Security.Authorization
+@using SocialGuard.Common.Data.Models.Authentication
+@using SocialGuard.YC.Services.Security
+
+@inject DiscordClient BotClient
+@inject GuildConfigService ConfigService
+@inject ApiAuthService AuthService
+@inject IEncryptionService EncryptionService
+
+
+@if (_guild is not null)
+{
+	<AuthorizeView Policy="@AuthorizationExtensions.RequireManageGuildPermission" Resource="@(_guild?.Id ?? 0)" Context="authContext">
+		<Authorized>
+			<div class="d-flex flex-md-row justify-content-between m-3 mb-5">
+				<h1><i class="bi-lock-fill me-3"></i>API Authentication</h1>
+
+				@RazorUtilities.GuildCornerInfo(_guild!)
+			</div>
+			
+			<hr class="my-5" />
+
+			@if (_config is not null)
+			{
+				<EditForm Model="_loginModel" OnValidSubmit="OnValidSubmitAsync" Context="configContext">
+					<DataAnnotationsValidator />
+
+					<div class="row gap-xl-3 my-5" id="auth">
+						<div class="col-xl-4 col-lg-6" id="login">
+							<h3>
+								<i class="bi-key-fill me-3"></i>Login as Emitter</h3>
+
+							<div class="card border-primary bg-body p-4 my-5">
+								<div class="d-flex flex-row">
+									<h1>
+										<i class="bi-info-circle m-4"></i></h1>
+
+									@if (_config.ApiLogin?.Username is not null)
+									{
+										<p class="lead">Currently logged in as
+											<strong class="font-monospace">@(_config.ApiLogin.Username)</strong>.</p>
+									}
+									else
+									{
+										<p class="lead">Currently not logged in.</p>
+									}
+								</div>
+							</div>
+
+							<ValidationSummary />
+							
+							<div class="my-3">
+								<label class="form-label" for="username">Username</label>
+								<input @bind-value="_loginModel.Username" type="text" class="form-control font-monospace" id="username" name="LoginUsername" placeholder="Username" />
+							</div>
+
+							<div class="my-3">
+								<label class="form-label" for="current-password">Password</label>
+								<input @bind-value="_loginModel.Password" type="password" class="form-control font-monospace" id="current-password" name="LoginPassword" placeholder="Password" />
+							</div>
+
+							<div class="d-flex flex-row gap-3">
+								<button type="submit" class="btn btn-success px-5">Login</button>
+								<button type="reset" class="btn btn-secondary px-5">Reset</button>
+							</div>
+							
+							@if (_loginAttempted)
+							{
+								<div class="d-flex flex-row my-3">
+									@if (_loginSuccessful is null)
+									{
+										<div class="lds-dual-ring m-3 border-primary"></div>
+										<p class="lead text-primary">Authentication in progress...</p>
+										
+									}
+									else if (_loginSuccessful is true)
+									{
+										<h3><i class="bi-check-circle text-success mx-3"></i></h3>
+										<p class="lead text-success">Successfully logged in.</p>
+									}
+									else
+									{
+										<h3><i class="bi-x-circle text-danger mx-3"></i></h3>
+										
+										<div class="text-danger">
+											<p class="lead">Failed to log in (@_loginException.StatusCode.ToString()) :</p>
+											<p>@_loginException.Message</p>
+										</div>
+									}
+								</div>
+							}
+						</div>
+					</div>
+				</EditForm>
+			}
+		</Authorized>
+
+		<NotAuthorized>
+			<h3 class="text-danger mx-3 my-5">
+				<i class="bi-shield-fill-x me-3"></i>
+				You are not authorized to edit settings for Guild <span class="font-monospace">@_guild!.Id</span>.
+			</h3>
+		</NotAuthorized>
+	</AuthorizeView>
+}
+else
+{
+	<div class="alert alert-warning m-3">
+		No Server found for ID<span class="font-monospace">@GuildIdStr</span>.
+	</div>
+}
+
+
+@code {
+	[Parameter] public string? GuildIdStr { get; set; }
+	
+	private DiscordGuild? _guild;
+	private GuildConfig? _config;
+	private readonly LoginModel _loginModel = new();
+
+	private bool _loginAttempted;
+	private bool? _loginSuccessful;
+
+	private HttpRequestException _loginException;
+	
+	protected override async Task OnParametersSetAsync()
+	{
+		await base.OnParametersSetAsync();
+
+		if (ulong.TryParse(GuildIdStr, out ulong guildId) && BotClient.Guilds.TryGetValue(guildId, out DiscordGuild? guild))
+		{
+			_config = await ConfigService.GetGuildConfigAsync(guildId);
+			_guild = guild;
+			_loginModel.Username = _config.ApiLogin?.Username ?? string.Empty;
+		}
+	}
+
+	private async Task OnValidSubmitAsync()
+	{
+		_loginAttempted = true;
+		_loginSuccessful = null;
+		
+		try
+		{
+			TokenResult? tokenResult = await AttemptLoginAsync();
+			
+			_config!.ApiLogin = new()
+			{
+				Username = _loginModel.Username, 
+				Password = await EncryptionService.EncryptAsync(_loginModel.Password)
+			};
+			_config.Token = tokenResult;
+			
+			await ConfigService.SetGuildConfigAsync(_config);
+			
+			_loginSuccessful = true;
+		}
+		catch (HttpRequestException e)
+		{
+			_loginException = e;
+			_loginSuccessful = false;
+		}
+		
+		
+		_loginModel.Password = string.Empty;
+	}
+
+	private Task<TokenResult?> AttemptLoginAsync()
+	{
+		return AuthService.LoginAsync(_loginModel.Username, _loginModel.Password);
+	}
+}

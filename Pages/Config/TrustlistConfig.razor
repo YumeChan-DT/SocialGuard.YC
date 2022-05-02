@@ -14,27 +14,8 @@
 	<AuthorizeView Policy="@AuthorizationExtensions.RequireManageGuildPermission" Resource="@(_guild?.Id ?? 0)" Context="authContext">
 		<Authorized>
 			<div class="d-flex flex-md-row justify-content-between m-3 mb-5">
-				<div>
-					<h1>
-						<i class="bi-wrench me-3"></i> Trustlist Configuration
-					</h1>
-				</div>
-
-				<div class="d-flex flex-row" id="guild-display">
-					@if (@_guild.GetIconUrl(ImageFormat.WebP, 128) is { } iconUrl)
-					{
-						<div id="guild-img">
-							<img alt="Server Icon" class="rounded-circle" src="@iconUrl" />
-						</div>
-					}
-
-					<div>
-						<div id="guild-name">
-							<h5>@_guild.Name</h5>
-						</div>
-						<div class="small text-muted" id="guild-id">ID: @_guild.Id.ToString()</div>
-					</div>
-				</div>
+				<div><h1><i class="bi-wrench me-3"></i>Trustlist Configuration</h1></div>
+				@RazorUtilities.GuildCornerInfo(_guild!)
 			</div>
 
 

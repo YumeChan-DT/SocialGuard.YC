@@ -2,20 +2,38 @@
 	This file is loaded on all plugin pages.
  */
 
+@import "spinner.scss";
+
+:root {
+	--bs-body-bg: #111;
+}
+
 body {
 	background: #111 radial-gradient(ellipse farthest-corner at 0 140%, #004144 0%, #111 80%) no-repeat left top;
 	background-size: 20%, 100%;
 }
 
-.form-group, .form-select {
-	background-color: var(--bs-body-bg);
+%styles-forms {
+	background-color: var(--bs-gray-900);
 	color: var(--bg-body-color);
-	
+
 	&:disabled {
 		background-color: var(--bs-gray-600);
 	}
 }
 
+.form-group, .form-control, .form-select {
+	@extend %styles-forms;
+	
+	&:focus {
+		@extend %styles-forms;
+	}
+}
+
 .form-select {
 	background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23FFFFFF' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+}
+
+.bg-body {
+	background-color: var(--bg-body-bg)!important;
 }

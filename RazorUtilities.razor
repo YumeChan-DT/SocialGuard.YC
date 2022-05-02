@@ -1,0 +1,20 @@
+﻿@code {
+	
+	public static RenderFragment<DiscordGuild> GuildCornerInfo { get; } = guild => __builder =>
+    {
+	    <div class="d-flex flex-row" id="guild-display">
+		    @if (@guild.GetIconUrl(ImageFormat.WebP, 128) is { } iconUrl)
+		    {
+			    <div id="guild-img">
+				    <img alt="Server Icon" class="rounded-circle" src="@iconUrl" />
+			    </div>
+		    }
+
+		    <div>
+			    <div id="guild-name"><h5>@guild.Name</h5></div>
+			    <div class="small text-muted" id="guild-id">ID: @guild.Id.ToString()</div>
+		    </div>
+	    </div>
+    };
+	
+}

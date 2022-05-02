@@ -1,7 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using SocialGuard.YC.Data.Components;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
 using System.Linq;
@@ -11,6 +10,7 @@ using MongoDB.Driver;
 using YumeChan.PluginBase.Tools.Data;
 using DSharpPlus.SlashCommands.Attributes;
 using SocialGuard.Common.Services;
+using SocialGuard.YC.Data.Models;
 
 namespace SocialGuard.YC.Modules
 {

@@ -98,11 +98,11 @@ namespace SocialGuard.YC.Modules
 				await context.Message.DeleteAsync();
 
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
-				config.ApiLogin = new() { Username = username, Password = _encryption.Encrypt(password) };
+				config.ApiLogin = new() { Username = username, Password = await _encryption.EncryptAsync(password) };
 
 				await guildConfig.SetLoginAsync(config);
 
-				await context.Channel.SendMessageAsync($"API credentials has been set.");
+				await context.Channel.SendMessageAsync("API credentials has been set.");
 			}
 
 			[Command("autoban"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.BanMembers)]
