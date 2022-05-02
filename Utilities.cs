@@ -11,6 +11,7 @@ using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using SocialGuard.YC.Data.Models;
 using DSharpPlus.SlashCommands;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -157,6 +158,8 @@ public static class Utilities
 		_ => "Unknown"
 	};
 
+	public static Regex SnowflakeRegex { get; } = new(@"(\d{17,21})", RegexOptions.Compiled);
+	
 	public static async Task<ulong?> GetUserSnowflakeAsync(this AuthenticationStateProvider authenticationStateProvider) 
 		=> (await authenticationStateProvider.GetAuthenticationStateAsync()).User is { } user
 		&& user.FindFirst(ClaimTypes.NameIdentifier) is { } claim

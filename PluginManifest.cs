@@ -13,6 +13,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using DSharpPlus;
+using Microsoft.AspNetCore.Authorization;
+using SocialGuard.YC.Infrastructure.Security.Authorization;
 using YumeChan.PluginBase;
 using YumeChan.PluginBase.Tools;
 
@@ -95,6 +98,17 @@ public class DependencyRegistrations : DependencyInjectionHandler
 			}
 		});
 
+		services.AddAuthorizationCore(options =>
+		{
+			options.AddPolicy(AuthorizationExtensions.RequireManageGuildPermission, policy => policy
+				.RequireGuildRole(Permissions.ManageGuild));
+			
+			options.AddPolicy(AuthorizationExtensions.RequireBanMembersPermission, policy => policy
+				.RequireGuildRole(Permissions.BanMembers));
+		});
+		
+		services.AddScoped<IAuthorizationHandler, GuildAccessAuthorizationHandler>();
+		
 		return services
 			.AddSingleton<GuildTrafficHandler>()
 			.AddSingleton<BroadcastsListener>()

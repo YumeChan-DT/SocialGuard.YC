@@ -53,6 +53,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components" Version="6.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="6.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.*" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="6.0.*" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
