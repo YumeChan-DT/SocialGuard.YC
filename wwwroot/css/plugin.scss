@@ -20,6 +20,10 @@ body {
 	&:disabled {
 		background-color: var(--bs-gray-600);
 	}
+	
+	&[readonly] {
+		background-color: var(--bs-gray-800);
+	}
 }
 
 .form-group, .form-control, .form-select {

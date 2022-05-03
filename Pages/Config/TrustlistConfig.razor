@@ -9,7 +9,7 @@
 
 @* TODO: Add Authorization. *@
 
-@if (_guild is not null)
+@if (_config is not null)
 {
 	<AuthorizeView Policy="@AuthorizationExtensions.RequireManageGuildPermission" Resource="@(_guild?.Id ?? 0)" Context="authContext">
 		<Authorized>
@@ -25,7 +25,7 @@
 			{
 				<div class="alert alert-success my-3">
 					<p class="my-0">
-						<i class="bi-check-circle me-3"></i> Changes to Trustlist configuration were saved successfully.
+						<i class="bi-check-circle me-3"></i>Changes to Trustlist configuration were saved.
 					</p>
 				</div>
 			}
@@ -56,8 +56,7 @@
 							<div class="form-check my-3">
 								<InputCheckbox @bind-Value=_config.SuppressJoinlogCleanRecords class="form-check-input" />
 								<label class="form-check-label">
-									Suppress
-									<span class="text-success">Clean (N+0)</span> records from Join Log
+									Suppress<span class="text-success">Clean (N+0)</span> records from Join Log
 								</label>
 							</div>
 
@@ -103,10 +102,7 @@
 
 							<div class="form-check my-3">
 								<InputCheckbox @bind-Value="_config.AutoBanBlacklisted" class="form-check-input" />
-								<label class="form-check-label">
-									Automatically ban all
-									<span class="text-danger">Dangerous (N+3)</span> users
-								</label>
+								<label class="form-check-label">Automatically ban all<span class="text-danger">Dangerous (N+3)</span> users</label>
 							</div>
 						</div>
 					</div>
@@ -126,11 +122,17 @@
 		</NotAuthorized>
 	</AuthorizeView>
 }
+else if (_guild is not null) 
+{
+	<div class="d-flex flex-column align-content-center gap-3">
+		<h3 class="text-primary">Loading...</h3>
+		<div class="lds-dual-ring"></div>
+	</div>
+	
+}
 else
 {
-	<div class="alert alert-warning m-3">
-		No Server found for ID<span class="font-monospace">@GuildIdStr</span>.
-	</div>
+	<h3 class="text-warning">No Server found for ID<span class="font-monospace">@GuildIdStr</span>.</h3>
 }
 
 @code {
@@ -143,14 +145,14 @@ else
 
 	private bool _displaySaveAlert;
 
-	protected override async Task OnParametersSetAsync()
+	protected override async Task OnInitializedAsync()
 	{
-		await base.OnParametersSetAsync();
+		await base.OnInitializedAsync();
 
 		if (ulong.TryParse(GuildIdStr, out ulong guildId) && BotClient.Guilds.TryGetValue(guildId, out DiscordGuild? guild))
 		{
-			_config = await ConfigService.GetGuildConfigAsync(guildId);
 			_guild = guild;
+			_config = await ConfigService.GetGuildConfigAsync(guildId);
 		}
 	}
 

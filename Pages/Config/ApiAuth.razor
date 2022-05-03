@@ -2,7 +2,6 @@
 @using SocialGuard.YC.Data.Models.Config
 @layout PanelLayout
 
-@using SocialGuard.YC.Data.Models.Config
 @using SocialGuard.YC.Infrastructure.Security.Authorization
 @using SocialGuard.Common.Data.Models.Authentication
 @using SocialGuard.YC.Services.Security
@@ -13,7 +12,7 @@
 @inject IEncryptionService EncryptionService
 
 
-@if (_guild is not null)
+@if (_config is not null)
 {
 	<AuthorizeView Policy="@AuthorizationExtensions.RequireManageGuildPermission" Resource="@(_guild?.Id ?? 0)" Context="authContext">
 		<Authorized>
@@ -33,7 +32,7 @@
 					<div class="row gap-xl-3 my-5" id="auth">
 						<div class="col-xl-4 col-lg-6" id="login">
 							<h3>
-								<i class="bi-key-fill me-3"></i>Login as Emitter</h3>
+								<i class="bi-key-fill me-3"></i>API Login</h3>
 
 							<div class="card border-primary bg-body p-4 my-5">
 								<div class="d-flex flex-row">
@@ -108,11 +107,17 @@
 		</NotAuthorized>
 	</AuthorizeView>
 }
+else if (_guild is not null) 
+{
+	<div class="d-flex flex-column align-content-center gap-3">
+		<h3 class="text-primary">Loading...</h3>
+		<div class="lds-dual-ring"></div>
+	</div>
+	
+}
 else
 {
-	<div class="alert alert-warning m-3">
-		No Server found for ID<span class="font-monospace">@GuildIdStr</span>.
-	</div>
+	<h3 class="text-warning">No Server found for ID<span class="font-monospace">@GuildIdStr</span>.</h3>
 }
 
 
@@ -128,14 +133,14 @@ else
 
 	private HttpRequestException _loginException;
 	
-	protected override async Task OnParametersSetAsync()
+	protected override async Task OnInitializedAsync()
 	{
-		await base.OnParametersSetAsync();
+		await base.OnInitializedAsync();
 
 		if (ulong.TryParse(GuildIdStr, out ulong guildId) && BotClient.Guilds.TryGetValue(guildId, out DiscordGuild? guild))
 		{
-			_config = await ConfigService.GetGuildConfigAsync(guildId);
 			_guild = guild;
+			_config = await ConfigService.GetGuildConfigAsync(guildId);
 			_loginModel.Username = _config.ApiLogin?.Username ?? string.Empty;
 		}
 	}
