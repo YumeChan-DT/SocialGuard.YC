@@ -21,13 +21,13 @@ namespace SocialGuard.YC.Modules
 		public class GuildConfigModule : BaseCommandModule
 		{
 			private readonly IMongoCollection<GuildConfig> guildConfig;
-			private readonly AuthApiService auth;
+			private readonly ApiAuthService _apiAuth;
 			private readonly IEncryptionService _encryption;
 
-			public GuildConfigModule(IDatabaseProvider<PluginManifest> database, AuthApiService auth, IEncryptionService encryption)
+			public GuildConfigModule(IDatabaseProvider<PluginManifest> database, ApiAuthService apiAuth, IEncryptionService encryption)
 			{
 				guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
-				this.auth = auth;
+				this._apiAuth = apiAuth;
 				_encryption = encryption;
 			}
 
@@ -98,11 +98,11 @@ namespace SocialGuard.YC.Modules
 				await context.Message.DeleteAsync();
 
 				GuildConfig config = await guildConfig.FindOrCreateConfigAsync(context.Guild.Id);
-				config.ApiLogin = new() { Username = username, Password = _encryption.Encrypt(password) };
+				config.ApiLogin = new() { Username = username, Password = await _encryption.EncryptAsync(password) };
 
 				await guildConfig.SetLoginAsync(config);
 
-				await context.Channel.SendMessageAsync($"API credentials has been set.");
+				await context.Channel.SendMessageAsync("API credentials has been set.");
 			}
 
 			[Command("autoban"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.BanMembers)]
@@ -147,7 +147,7 @@ namespace SocialGuard.YC.Modules
 			{
 				await context.Message.DeleteAsync();
 				RegisterModel credentials = new() { Username = username, Email = email, Password = password };
-				Response result = await auth.RegisterNewUserAsync(credentials, CancellationToken.None);
+				Response result = await _apiAuth.RegisterNewUserAsync(credentials, CancellationToken.None);
 
 				await context.Channel.SendMessageAsync($"{context.User.Mention} {result.Status} : {result.Message}\n");
 			}

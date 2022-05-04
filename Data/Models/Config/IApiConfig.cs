@@ -5,7 +5,7 @@
 		public string ApiHost { get; set; }
 		public string EncryptionKey { get; set; }
 
-		public IAzureClientIdentity AzureIdentity { get; set; }
+		public IAzureClientIdentity? AzureIdentity { get; set; }
 		public string KeyVaultUri { get; set; }
 	}
 

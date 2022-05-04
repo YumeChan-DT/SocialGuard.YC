@@ -9,8 +9,12 @@ using DSharpPlus.Entities;
 using DSharpPlus;
 using MongoDB.Driver;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Security.Claims;
+using System.Text.RegularExpressions;
 using SocialGuard.YC.Data.Models;
 using DSharpPlus.SlashCommands;
+using Microsoft.AspNetCore.Components.Authorization;
 using SocialGuard.Common.Services;
 
 
@@ -25,7 +29,7 @@ public static class Utilities
 		PropertyNamingPolicy = JsonNamingPolicy.CamelCase
 	};
 
-	public static async Task<TData> ParseResponseFullAsync<TData>(HttpResponseMessage response) => JsonSerializer.Deserialize<TData>(await response.Content.ReadAsStringAsync(), SerializerOptions);
+	public static async Task<TData?> ParseResponseFullAsync<TData>(HttpResponseMessage response) => JsonSerializer.Deserialize<TData>(await response.Content.ReadAsStringAsync(), SerializerOptions);
 
 	public static IApiConfig PopulateApiConfig(this IApiConfig config)
 	{
@@ -52,12 +56,12 @@ public static class Utilities
 		};
 
 		builder.AddField("ID", $"`{user.Id}`", true);
-		builder.AddField("Account Created", user.CreationTimestamp.UtcDateTime.ToString(), true);
+		builder.AddField("Account Created", user.CreationTimestamp.UtcDateTime.ToString(CultureInfo.InvariantCulture), true);
 
 		return builder.Build();
 	}
 
-	public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser trustlistUser, DiscordUser discordUser, TrustlistEntry entry = null)
+	public static DiscordEmbed BuildUserRecordEmbed(TrustlistUser? trustlistUser, DiscordUser discordUser, TrustlistEntry? entry = null)
 	{
 		entry ??= trustlistUser?.GetLatestMaxEntry();
 		(DiscordColor color, string name, string desc) = GetEscalationDescriptions(entry?.EscalationLevel ?? 0);
@@ -71,17 +75,17 @@ public static class Utilities
 		};
 
 		builder.AddField("ID", $"`{discordUser.Id}`", true);
-		builder.AddField("Account Created", discordUser.CreationTimestamp.UtcDateTime.ToString(), true);
+		builder.AddField("Account Created", discordUser.CreationTimestamp.UtcDateTime.ToString(CultureInfo.InvariantCulture), true);
 
 		if (entry is not null)
 		{
 			builder
-				.AddField("Last Emitter", $"{entry.Emitter.DisplayName} (`{entry.Emitter.Login}`)")
+				.AddField("Last Emitter", $"{entry.Emitter!.DisplayName} (`{entry.Emitter.Login}`)")
 				.AddField("Highest Escalation Level", $"**{entry.EscalationLevel}** - {name}", true)
-				.AddField("Average Escalation Level", $"**{trustlistUser.GetMedianEscalationLevel():F2}**", true)
-				.AddField("Total Entries", $"**{trustlistUser.Entries.Count}**", true)
-				.AddField("First Entered", entry.EntryAt.ToString(), true)
-				.AddField("Last Escalation", entry.LastEscalated.ToString(), true)
+				.AddField("Average Escalation Level", $"**{trustlistUser!.GetMedianEscalationLevel():F2}**", true)
+				.AddField("Total Entries", $"**{trustlistUser!.Entries!.Count}**", true)
+				.AddField("First Entered", entry.EntryAt.ToString(CultureInfo.InvariantCulture), true)
+				.AddField("Last Escalation", entry.LastEscalated.ToString(CultureInfo.InvariantCulture), true)
 				.AddField("Last Reason", entry.EscalationNote);
 		}
 
@@ -153,4 +157,13 @@ public static class Utilities
 		EmitterType.Server => "Server",
 		_ => "Unknown"
 	};
+
+	public static Regex SnowflakeRegex { get; } = new(@"(\d{17,21})", RegexOptions.Compiled);
+	
+	public static async Task<ulong?> GetUserSnowflakeAsync(this AuthenticationStateProvider authenticationStateProvider) 
+		=> (await authenticationStateProvider.GetAuthenticationStateAsync()).User is { } user
+		&& user.FindFirst(ClaimTypes.NameIdentifier) is { } claim
+		&& ulong.TryParse(claim.Value, out ulong snowflake)
+			? snowflake
+			: null;
 }
