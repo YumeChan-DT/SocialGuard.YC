@@ -1,9 +1,6 @@
-﻿using DSharpPlus.CommandsNext;
-using DSharpPlus;
+﻿using DSharpPlus;
 using DSharpPlus.SlashCommands;
 using SocialGuard.YC.Data.Models.Config;
-using SocialGuard.YC.Data.Models;
-using System.Threading.Tasks;
 using DSharpPlus.SlashCommands.Attributes;
 using MongoDB.Driver;
 using SocialGuard.YC.Services;
@@ -22,13 +19,13 @@ namespace SocialGuard.YC.Modules
 		{
 			private readonly IMongoCollection<GuildConfig> guildConfig;
 			private readonly EmitterClient _emitterClient;
-			private readonly AuthApiService authService;
+			private readonly ApiAuthService _apiAuthService;
 
-			public EmitterSlashModule(EmitterClient emitterClient, AuthApiService authService, IDatabaseProvider<PluginManifest> database)
+			public EmitterSlashModule(EmitterClient emitterClient, ApiAuthService apiAuthService, IDatabaseProvider<PluginManifest> database)
 			{
 				guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 				_emitterClient = emitterClient;
-				this.authService = authService;
+				this._apiAuthService = apiAuthService;
 			}
 
 			[SlashCommand("info", "Displays information on current Emitter info for guild."), SlashRequireGuild, SlashRequireUserPermissions(Permissions.ManageGuild)]
@@ -44,7 +41,7 @@ namespace SocialGuard.YC.Modules
 					return;
 				}
 
-				Emitter emitter = await _emitterClient.GetEmitterAsync(await authService.GetOrUpdateAuthTokenAsync(ctx.Guild.Id));
+				Emitter emitter = await _emitterClient.GetEmitterAsync(await _apiAuthService.GetOrUpdateAuthTokenAsync(ctx.Guild.Id));
 
 				if (emitter is null)
 				{
@@ -74,10 +71,10 @@ namespace SocialGuard.YC.Modules
 					DisplayName = ctx.Guild.Name,
 					EmitterType = EmitterType.Server,
 					Snowflake = ctx.Guild.Id
-				}, await authService.GetOrUpdateAuthTokenAsync(ctx.Guild.Id));
+				}, await _apiAuthService.GetOrUpdateAuthTokenAsync(ctx.Guild.Id));
 
 				await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder { Content = "Emitter successfully set :" }
-					.AddEmbed(Utilities.BuildEmitterEmbed(await _emitterClient.GetEmitterAsync(await authService.GetOrUpdateAuthTokenAsync(ctx.Guild.Id)))));
+					.AddEmbed(Utilities.BuildEmitterEmbed(await _emitterClient.GetEmitterAsync(await _apiAuthService.GetOrUpdateAuthTokenAsync(ctx.Guild.Id)))));
 			}
 		}
 	}

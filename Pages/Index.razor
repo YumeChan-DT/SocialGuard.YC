@@ -1,0 +1,36 @@
+﻿@page "/"
+@layout PanelLayout
+
+<div id="intro" class="my-5">
+	<h1 class="mx-xl-5 mb-3">NSYS SocialGuard for YumeChan</h1>
+	<p class="lead">This Web Panel will allow you to setup and manage SocialGuard for your Discord servers.</p>
+	
+	<div class="mt-5">
+    	<AuthorizeView>
+    		<Authorized>
+    			<div class="alert alert-primary">
+                	Start by selecting a server to manage, in the Panel Menu selector.
+                </div>
+    		</Authorized>
+    
+    		<NotAuthorized>
+    			<div class="alert alert-primary">
+    				Please <a href="/login">login</a> to configure SocialGuard for YC on your servers.
+    			</div>
+    		</NotAuthorized>
+    	</AuthorizeView>
+    </div>
+</div>
+
+
+
+<div id="links" class="my-5">
+	<h3 class="my-3">Useful Resources</h3>
+	
+	<ul>
+		<li><a href="https://github.com/YumeChan-DT/SocialGuard.YC">GitHub Repository</a></li>
+		<li><a href="https://socialguard.net">NSYS SocialGuard - Website</a></li>
+		<li><a href="https://socialguard.net/viewer">NSYS SocialGuard - Records Browser</a></li>
+		<li><a href="https://api.socialguard.net">NSYS SocialGuard - API</a></li>
+	</ul>
+</div>

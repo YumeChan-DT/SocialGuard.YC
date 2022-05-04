@@ -1,16 +1,13 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using SocialGuard.YC.Data.Components;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
-using System.Linq;
-using System;
-using System.Threading.Tasks;
 using MongoDB.Driver;
 using YumeChan.PluginBase.Tools.Data;
 using DSharpPlus.SlashCommands.Attributes;
 using SocialGuard.Common.Services;
+using SocialGuard.YC.Data.Models;
 
 namespace SocialGuard.YC.Modules
 {
@@ -20,13 +17,13 @@ namespace SocialGuard.YC.Modules
 		public class TrustlistSlashModule : ApplicationCommandModule
 		{
 			private readonly TrustlistClient _trustlist;
-			private readonly AuthApiService auth;
+			private readonly ApiAuthService _apiAuth;
 			private readonly IMongoCollection<GuildConfig> guildConfig;
 
-			public TrustlistSlashModule(TrustlistClient trustlist, AuthApiService auth, IDatabaseProvider<PluginManifest> databaseProvider)
+			public TrustlistSlashModule(TrustlistClient trustlist, ApiAuthService apiAuth, IDatabaseProvider<PluginManifest> databaseProvider)
 			{
 				_trustlist = trustlist;
-				this.auth = auth;
+				this._apiAuth = apiAuth;
 				guildConfig = databaseProvider.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 			}
 
@@ -88,7 +85,7 @@ namespace SocialGuard.YC.Modules
 							{
 								EscalationLevel = level,
 								EscalationNote = reason
-							}, (await auth.GetOrUpdateAuthTokenAsync(context.Guild.Id)).Token);
+							}, (await _apiAuth.GetOrUpdateAuthTokenAsync(context.Guild.Id)).Token);
 
 							string userMention = (user as DiscordMember)?.Mention ?? user.Id.ToString();
 							DiscordEmbed embed = await _trustlist.GetLookupEmbedAsync(user);

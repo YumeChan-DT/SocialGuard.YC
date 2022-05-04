@@ -1,0 +1,163 @@
+﻿@page "/emitter/{GuildIdStr}"
+@layout PanelLayout
+
+@using SocialGuard.YC.Infrastructure.Security.Authorization
+@using SocialGuard.Common.Data.Models
+@using SocialGuard.YC.Data.Models.Config
+
+@inject DiscordClient BotClient
+@inject GuildConfigService ConfigService
+@inject ApiAuthService AuthService
+@inject EmitterClient EmitterClient;
+
+
+@if (_emitterModel is not null)
+{
+	<AuthorizeView Policy="@AuthorizationExtensions.RequireManageGuildPermission" Resource="@(_guild?.Id ?? 0)" Context="authContext">
+		<Authorized>
+			<div class="d-flex flex-md-row justify-content-between m-3 mb-5">
+				<h1><i class="bi-patch-check me-3"></i>Emitter Profile</h1>
+				@RazorUtilities.GuildCornerInfo(_guild!)
+			</div>
+			
+			<hr class="my-5" />
+			
+			@if (_displaySaveAlert)
+            {
+            	<div class="alert alert-success my-3">
+            		<p class="my-0">
+            			<i class="bi-check-circle me-3"></i>Changes to Emitter profile were saved.
+            		</p>
+            	</div>
+            }
+			
+			@if (_guildAuthenticated)
+			{
+				<EditForm Model="_emitterModel" OnValidSubmit="OnValidSubmitAsync" Context="configContext">
+					<DataAnnotationsValidator />
+
+					<div class="row gap-xl-3 my-5" id="auth">
+						<div class="col-xl-4 col-lg-6" id="login">
+							<h3><i class="bi-key-fill me-3"></i>Setup Emitter Profile</h3>
+
+							<ValidationSummary />
+							
+							<div class="my-3">
+								<label class="form-label d-flex flex-row justify-content-between">
+									<span>Emitter Login</span>
+									<span class="text-muted small">(readonly)</span>
+								</label>
+
+								<input id="login" type="text" @bind-value="@_emitterModel.Login" class="form-control font-monospace"  name="Login" readonly />
+							</div>
+										
+							<div class="my-3">
+								<label class="form-label">Discord ID / Snowflake</label>
+								<input id="login" type="text" @bind-value="@_emitterModel.Snowflake" class="form-control font-monospace"  name="Snowflake" />
+							</div>
+							
+							<div class="my-3">
+								<label class="form-label">Display Name</label>
+								<input id="login" type="text" @bind-value="@_emitterModel.DisplayName" class="form-control" name="Display Name" />
+							</div>
+							
+							<div class="my-3">
+								<label class="form-label">Emitter Type</label>
+
+								<select @bind="@_emitterModel.EmitterType" class="form-select">
+									@foreach (EmitterType emitterType in Enum.GetValues(typeof(EmitterType)))
+									{
+										<option value="@emitterType">@emitterType.ToString("G")</option>
+									}
+								</select>
+							</div>
+							
+							<div class="d-flex flex-row gap-3 my-5">
+                            	<button type="submit" class="btn btn-success px-5">Login</button>
+                            	<button type="button" @onclick=SetEmitterFromGuild class="btn btn-primary px-3">Use Server defaults</button>
+                            </div>
+						</div>
+					</div>
+				</EditForm>
+			}
+			else
+			{
+				<h3 class="text-warning">
+					<i class="bi-exclamation-triangle-fill me-3"></i>
+					This server is not authenticated on the API.
+					(<a href="auth/@_guild!.Id.ToString()">Login here</a>)
+				</h3>
+			}
+		</Authorized>
+
+		<NotAuthorized>
+			<h3 class="text-danger mx-3 my-5">
+				<i class="bi-shield-fill-x me-3"></i>
+				You are not authorized to edit settings for Guild <span class="font-monospace">@_guild!.Id</span>.
+			</h3>
+		</NotAuthorized>
+	</AuthorizeView>
+}
+else if (_guild is not null) 
+{
+	@RazorUtilities.LoadingSpinner
+}
+else
+{
+	<h3 class="text-warning">No Server found for ID<span class="font-monospace">@GuildIdStr</span>.</h3>
+}
+
+
+@code {
+	[Parameter] public string? GuildIdStr { get; set; }
+	
+	private DiscordGuild? _guild;
+	private EmitterEditModel? _emitterModel;
+	private Emitter? _currentEmitter;
+	private GuildConfig? _config;
+
+	private bool _guildAuthenticated;
+	private bool _displaySaveAlert;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+
+		if (ulong.TryParse(GuildIdStr, out ulong guildId) && BotClient.Guilds.TryGetValue(guildId, out DiscordGuild? guild))
+		{
+			_guild = guild;
+			_config = await ConfigService.GetGuildConfigAsync(guildId);
+
+			if (await AuthService.GetOrUpdateAuthTokenAsync(_guild.Id) is { } authToken)
+			{
+				_guildAuthenticated = true;
+				_currentEmitter = await EmitterClient.GetEmitterAsync(authToken);
+				_emitterModel = _currentEmitter?.Adapt<EmitterEditModel>() ?? new() { Login = _config.ApiLogin!.Username, Snowflake = guildId };
+			}
+		}
+	}
+
+	private async Task OnValidSubmitAsync()
+	{
+		Emitter emitter = _emitterModel!.Adapt<Emitter>();
+		
+		await EmitterClient.SetEmitterAsync(emitter, await AuthService.GetOrUpdateAuthTokenAsync(_guild!.Id) ?? null!);
+		_currentEmitter = emitter;
+		_displaySaveAlert = true;
+	}
+
+	private void SetEmitterFromGuild()
+	{
+		_emitterModel!.Snowflake = _guild!.Id;
+		_emitterModel.DisplayName = _guild.Name;
+		_emitterModel.EmitterType = EmitterType.Server;
+	}
+	
+	private record EmitterEditModel
+	{
+		public string Login { get; set; } = string.Empty;
+		public ulong Snowflake { get; set; }
+		public string DisplayName { get; set; } = string.Empty;
+		public EmitterType EmitterType { get; set; }
+	}
+}

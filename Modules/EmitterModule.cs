@@ -1,9 +1,7 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
-using DSharpPlus.Entities;
 using YumeChan.PluginBase.Tools.Data;
-using System.Threading.Tasks;
 using MongoDB.Driver;
 using SocialGuard.Common.Services;
 using SocialGuard.YC.Data.Models.Config;
@@ -19,13 +17,13 @@ namespace SocialGuard.YC.Modules
 		{
 			private readonly IMongoCollection<GuildConfig> guildConfig;
 			private readonly EmitterClient _emitterClient;
-			private readonly AuthApiService authService;
+			private readonly ApiAuthService _apiAuthService;
 
-			public EmitterModule(EmitterClient emitterClient, AuthApiService authService, IDatabaseProvider<PluginManifest> database)
+			public EmitterModule(EmitterClient emitterClient, ApiAuthService apiAuthService, IDatabaseProvider<PluginManifest> database)
 			{
 				guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 				_emitterClient = emitterClient;
-				this.authService = authService;
+				this._apiAuthService = apiAuthService;
 			}
 
 			[Command("info"), RequireUserPermissions(Permissions.ManageGuild)]
@@ -39,7 +37,7 @@ namespace SocialGuard.YC.Modules
 					return;
 				}
 
-				Emitter emitter = await _emitterClient.GetEmitterAsync(await authService.GetOrUpdateAuthTokenAsync(context.Guild.Id));
+				Emitter emitter = await _emitterClient.GetEmitterAsync(await _apiAuthService.GetOrUpdateAuthTokenAsync(context.Guild.Id));
 
 				if (emitter is null)
 				{
@@ -67,10 +65,10 @@ namespace SocialGuard.YC.Modules
 					DisplayName = context.Guild.Name,
 					EmitterType = EmitterType.Server,
 					Snowflake = context.Guild.Id
-				}, await authService.GetOrUpdateAuthTokenAsync(context.Guild.Id));
+				}, await _apiAuthService.GetOrUpdateAuthTokenAsync(context.Guild.Id));
 
 				await context.RespondAsync("Emitter successfully set :",
-					Utilities.BuildEmitterEmbed(await _emitterClient.GetEmitterAsync(await authService.GetOrUpdateAuthTokenAsync(context.Guild.Id))));
+					Utilities.BuildEmitterEmbed(await _emitterClient.GetEmitterAsync(await _apiAuthService.GetOrUpdateAuthTokenAsync(context.Guild.Id))));
 			}
 		}
 	}

@@ -1,8 +1,6 @@
-﻿using System.Threading.Tasks;
-using SocialGuard.YC.Services.Security;
+﻿using SocialGuard.YC.Services.Security;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext;
-using System;
 
 namespace SocialGuard.YC.Modules
 {

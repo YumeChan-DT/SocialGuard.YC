@@ -1,13 +1,9 @@
 ﻿using DSharpPlus.EventArgs;
 using DSharpPlus;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Threading.Tasks;
-using System.Threading;
 using MongoDB.Driver;
 using SocialGuard.YC.Data.Models.Config;
 using YumeChan.PluginBase.Tools.Data;
-using System.Linq;
 using SocialGuard.YC.Services;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;

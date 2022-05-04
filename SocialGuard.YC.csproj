@@ -1,8 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Version>3.3.2</Version>
+    <ImplicitUsings>true</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
+    
+    <Version>3.4</Version>
     <Authors>Sakura Akeno Isayeki</Authors>
     <Company>Nodsoft Systems</Company>
     <Product>NSYS SocialGuard (YC)</Product>
@@ -12,11 +16,15 @@
     <RepositoryUrl>https://github.com/YumeChan-DT/SocialGuard.YC</RepositoryUrl>
     <PackageIconUrl>https://socialguard.net/assets/icons/android-chrome-512x512.png</PackageIconUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+    <CopyConflictingTransitiveContent>true</CopyConflictingTransitiveContent>
   </PropertyGroup>
 
   <PropertyGroup>
     <OutDir>$(YumeChan_PluginsLocation)\$(MSBuildProjectName)</OutDir>
     <OutputPath>$(YumeChan_PluginsLocation)\$(MSBuildProjectName)</OutputPath>
+    <StaticWebAssetBasePath>wwwroot</StaticWebAssetBasePath>
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
 
@@ -25,22 +33,56 @@
     <None Remove=".gitignore" />
     <None Remove="LICENSE" />
     <None Include="README.md" Pack="true" PackagePath="/" />
+    
+    <!-- Hiding compiled CSS files, as we exclusively use SCSS in sources -->
+    <None Update="**/*.css" Visible="false" />
+    
+    <EmbeddedResource Include="wwwroot/**/*.*" />
+    
+    <Content Update="wwwroot/**/*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.6.0" />
     <PackageReference Include="Azure.Security.KeyVault.Keys" Version="4.3.0" />
     <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.3.0" />
     <PackageReference Include="DSharpPlus.SlashCommands" Version="4.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="6.0.4" />
+    <PackageReference Include="LibSassBuilder" Version="2.0.1" />
+    <PackageReference Include="Mapster" Version="7.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.*" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="6.0.*" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.6.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="SocialGuard.Common" Version="3.1.0-rc2" />
     <PackageReference Include="YumeChan.PluginBase" Version="3.0.0" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <!-- Used only for development, to reference NetRunner's web assets -->
+    <None Include="$(YumeChan_PluginsLocation)\..\wwwroot\**\*.*" Link="wwwroot\baseref\%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <!-- Add reference to generated css scopes file -->
+    <Content Include="$(IntermediateOutputPath)/scopedcss/projectbundle/**">
+      <Link>wwwroot/%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SocialGuard\SocialGuard.Common\SocialGuard.Common.csproj" />
+    <TypeScriptCompile Include="*.ts" />
   </ItemGroup>
 </Project>

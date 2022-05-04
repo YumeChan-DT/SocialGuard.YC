@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using SocialGuard.Common.Data.Models;
+﻿using SocialGuard.Common.Data.Models;
 
 
 namespace SocialGuard.YC.Data.Models;

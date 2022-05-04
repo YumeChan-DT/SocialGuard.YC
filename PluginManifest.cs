@@ -1,18 +1,12 @@
-﻿using Azure.Identity;
-using Azure.Security.KeyVault.Keys;
-using Azure.Security.KeyVault.Secrets;
-using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SocialGuard.Common.Services;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
 using SocialGuard.YC.Services.Security;
-using System;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
+using DSharpPlus;
+using Microsoft.AspNetCore.Authorization;
+using SocialGuard.YC.Infrastructure.Security.Authorization;
 using YumeChan.PluginBase;
 using YumeChan.PluginBase.Tools;
 
@@ -22,6 +16,9 @@ public class PluginManifest : Plugin
 {
 	public override string DisplayName => "NSYS SocialGuard (YC)";
 	public override bool StealthMode => false;
+
+	public override bool ShouldUseNetRunner => true;
+
 	internal const string ApiConfigFileName = "api";
 
 	private readonly IApiConfig _apiConfig;
@@ -46,12 +43,17 @@ public class PluginManifest : Plugin
 
 	public override async Task LoadAsync()
 	{
-		CancellationToken cancellationToken = CancellationToken.None; // May get added into method parameters later on.
+		CancellationToken ct = CancellationToken.None; // May get added into method parameters later on.
 		await base.LoadAsync();
-
-		await _componentInteractionsListener.StartAsync(cancellationToken);
-		await _broadcastsListener.StartAsync(cancellationToken);
-		await _guildTrafficHandler.StartAsync(cancellationToken);
+		
+		// Start listeners/handlers in the background.
+		_ = Task.Run(async () =>
+		{
+			_logger.LogInformation("Starting SocialGuard for YC background services...");
+			await _broadcastsListener.StartAsync(ct);
+			await _guildTrafficHandler.StartAsync(ct);
+			await _componentInteractionsListener.StartAsync(ct);
+		}, ct);
 
 
 		_logger.LogInformation("Loaded {plugin}.", DisplayName);
@@ -61,11 +63,11 @@ public class PluginManifest : Plugin
 
 	public override async Task UnloadAsync()
 	{
-		CancellationToken cancellationToken = CancellationToken.None; // May get added into method parameters later on.
+		CancellationToken ct = CancellationToken.None; // May get added into method parameters later on.
 
-		await _componentInteractionsListener.StopAsync(cancellationToken);
-		await _broadcastsListener.StopAsync(cancellationToken);
-		await _guildTrafficHandler.StopAsync(cancellationToken);
+		await _componentInteractionsListener.StopAsync(ct);
+		await _broadcastsListener.StopAsync(ct);
+		await _guildTrafficHandler.StopAsync(ct);
 
 		_logger.LogInformation("Unloaded {plugin}.", DisplayName);
 		await base.UnloadAsync();
@@ -92,6 +94,17 @@ public class DependencyRegistrations : DependencyInjectionHandler
 			}
 		});
 
+		services.AddAuthorizationCore(options =>
+		{
+			options.AddPolicy(AuthorizationExtensions.RequireManageGuildPermission, policy => policy
+				.RequireGuildRole(Permissions.ManageGuild));
+			
+			options.AddPolicy(AuthorizationExtensions.RequireBanMembersPermission, policy => policy
+				.RequireGuildRole(Permissions.BanMembers));
+		});
+		
+		services.AddScoped<IAuthorizationHandler, GuildAccessAuthorizationHandler>();
+		
 		return services
 			.AddSingleton<GuildTrafficHandler>()
 			.AddSingleton<BroadcastsListener>()
@@ -108,7 +121,7 @@ public class DependencyRegistrations : DependencyInjectionHandler
 				client.SetBaseUri(new(services.GetRequiredService<IApiConfig>().ApiHost));
 				return client;
 			})
-			.AddSingleton<AuthApiService>()
+			.AddSingleton<ApiAuthService>()
 			.AddSingleton(s => s.GetRequiredService<IInterfaceConfigProvider<IApiConfig>>().InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig());
 	}
 }
