@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
     
-    <Version>3.4-dev</Version>
+    <Version>3.4</Version>
     <Authors>Sakura Akeno Isayeki</Authors>
     <Company>Nodsoft Systems</Company>
     <Product>NSYS SocialGuard (YC)</Product>
