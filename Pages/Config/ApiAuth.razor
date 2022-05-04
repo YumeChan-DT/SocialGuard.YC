@@ -5,6 +5,7 @@
 @using SocialGuard.YC.Infrastructure.Security.Authorization
 @using SocialGuard.Common.Data.Models.Authentication
 @using SocialGuard.YC.Services.Security
+@using System.ComponentModel.DataAnnotations
 
 @inject DiscordClient BotClient
 @inject GuildConfigService ConfigService
@@ -14,125 +15,229 @@
 
 @if (_config is not null)
 {
-	<AuthorizeView Policy="@AuthorizationExtensions.RequireManageGuildPermission" Resource="@(_guild?.Id ?? 0)" Context="authContext">
+	<AuthorizeView Context="authContext" Policy="@AuthorizationExtensions.RequireManageGuildPermission" Resource="@(_guild?.Id ?? 0)">
 		<Authorized>
 			<div class="d-flex flex-md-row justify-content-between m-3 mb-5">
-				<h1><i class="bi-lock-fill me-3"></i>API Authentication</h1>
+				<h1>
+					<i class="bi-lock-fill me-3"></i>API Authentication
+				</h1>
 
 				@RazorUtilities.GuildCornerInfo(_guild!)
 			</div>
-			
+
 			<hr class="my-5" />
 
 			@if (_config is not null)
 			{
-				<EditForm Model="_loginModel" OnValidSubmit="OnValidSubmitAsync" Context="configContext">
-					<DataAnnotationsValidator />
+				<div class="row gap-xl-3 my-5 justify-content-between" id="auth">
+					<div class="col-xl-4 col-lg-6" id="login">
+						<EditForm Context="configContext" Model="_loginModel" OnValidSubmit="OnLoginAsync">
+							<DataAnnotationsValidator />
 
-					<div class="row gap-xl-3 my-5" id="auth">
-						<div class="col-xl-4 col-lg-6" id="login">
-							<h3>
-								<i class="bi-key-fill me-3"></i>API Login</h3>
+							<h3><i class="bi-key-fill me-3"></i>API Login</h3>
 
 							<div class="card border-primary bg-body p-4 my-5">
-								<div class="d-flex flex-row">
-									<h1>
-										<i class="bi-info-circle m-4"></i></h1>
+								<div class="d-flex flex-row align-items-center">
+									<h1 class="my-0">
+										<i class="bi-info-circle me-5"></i>
+									</h1>
 
 									@if (_config.ApiLogin?.Username is not null)
 									{
-										<p class="lead">Currently logged in as
-											<strong class="font-monospace">@(_config.ApiLogin.Username)</strong>.</p>
+										<p class="lead my-0">
+											Currently logged in as
+											<strong class="font-monospace">@(_config.ApiLogin.Username)</strong>.
+										</p>
 									}
 									else
 									{
-										<p class="lead">Currently not logged in.</p>
+										<p class="lead my-0">Currently not logged in.</p>
 									}
 								</div>
 							</div>
 
 							<ValidationSummary />
-							
+
 							<div class="my-3">
 								<label class="form-label" for="username">Username</label>
-								<input @bind-value="_loginModel.Username" type="text" class="form-control font-monospace" id="username" name="LoginUsername" placeholder="Username" />
+								<input autocomplete="username socialguard"
+									@bind-value="_loginModel.Username"
+									class="form-control font-monospace"
+									id="username"
+									name="LoginUsername"
+									placeholder="Username"
+									type="text" />
 							</div>
 
 							<div class="my-3">
-								<label class="form-label" for="current-password">Password</label>
-								<input @bind-value="_loginModel.Password" type="password" class="form-control font-monospace" id="current-password" name="LoginPassword" placeholder="Password" />
+								<label class="form-label" for="password">Password</label>
+								<input autocomplete="current-password"
+									@bind-value="_loginModel.Password"
+									class="form-control font-monospace"
+									id="password"
+									name="LoginPassword"
+									placeholder="Password"
+									type="password" />
 							</div>
 
 							<div class="d-flex flex-row gap-3">
-								<button type="submit" class="btn btn-success px-5">Login</button>
-								<button type="reset" class="btn btn-secondary px-5">Reset</button>
+								<button class="btn btn-success px-5" type="submit">Login</button>
+								<button class="btn btn-secondary px-3" type="reset">Reset</button>
 							</div>
-							
+
 							@if (_loginAttempted)
+                            	{
+                            		<div class="d-flex flex-row my-3">
+                            			@if (_loginSuccessful is null)
+                            			{
+                            				<div class="lds-dual-ring m-3 border-primary"></div>
+                            				<p class="lead text-primary">Authentication in progress...</p>
+                            			}
+                            			else if (_loginSuccessful is true)
+                            			{
+                            				<h3>
+                            					<i class="bi-check-circle text-success mx-3"></i>
+                            				</h3>
+                            				<p class="lead text-success">Successfully logged in.</p>
+                            			}
+                            			else
+                            			{
+                            				<h3>
+                            					<i class="bi-x-circle text-danger mx-3"></i>
+                            				</h3>
+    
+                            				<div class="text-danger">
+                            					<p class="lead">Failed to log in (@_loginException.StatusCode.ToString()) :</p>
+                            					<p>@_loginException.Message</p>
+                            				</div>
+                            			}
+                            		</div>
+                            	}
+						</EditForm>
+					</div>
+
+					<div class="col-xl-5 col-lg-6" id="register">
+						<EditForm Context="configContext" Model="_registerModel" OnValidSubmit="OnRegisterAsync">
+							<DataAnnotationsValidator />
+
+							<h3><i class="bi-plus me-3"></i>Register on SocialGuard API</h3>
+
+							<ValidationSummary />
+
+							@if (_registerSuccessful is true)
 							{
-								<div class="d-flex flex-row my-3">
-									@if (_loginSuccessful is null)
-									{
-										<div class="lds-dual-ring m-3 border-primary"></div>
-										<p class="lead text-primary">Authentication in progress...</p>
-										
-									}
-									else if (_loginSuccessful is true)
-									{
-										<h3><i class="bi-check-circle text-success mx-3"></i></h3>
-										<p class="lead text-success">Successfully logged in.</p>
-									}
-									else
-									{
-										<h3><i class="bi-x-circle text-danger mx-3"></i></h3>
-										
-										<div class="text-danger">
-											<p class="lead">Failed to log in (@_loginException.StatusCode.ToString()) :</p>
-											<p>@_loginException.Message</p>
-										</div>
-									}
+								<div class="alert alert-success d-flex flex-row align-items-center my-5 py-3">
+									<h1>
+										<i class="bi-check-circle me-5"></i>
+									</h1>
+
+									<div class="d-flex flex-column">
+										<p class="lead mb-0">Successfully registered.</p>
+										<p class="mb-0">Would you like to login using these credentials ?</p>
+										<div class="mt-2"><button class="btn btn-primary" @onclick=LoginWithRegisteredCredentialsAsync type="button">Quick Login</button></div>
+									</div>
 								</div>
 							}
-						</div>
+
+
+							<div class="my-3">
+								<label class="form-label" for="username">Username</label>
+								<input autocomplete="username socialguard"
+									@bind-value="_registerModel.Username"
+									class="form-control font-monospace"
+									id="username"
+									name="LoginUsername"
+									placeholder="Username"
+									type="text" />
+							</div>
+							<div class="my-3">
+								<label class="form-label" for="username">Email Address</label>
+								<input autocomplete="email"
+									@bind-value="_registerModel.Email"
+									class="form-control"
+									id="username"
+									name="Email"
+									placeholder="admin@socialguard.net"
+									type="text" />
+							</div>
+
+							<div class="my-3">
+								<label class="form-label" for="password">Password</label>
+								<input autocomplete="new-password"
+									@bind-value="_registerModel.Password"
+									class="form-control font-monospace"
+									id="password"
+									name="LoginPassword"
+									placeholder="Password"
+									type="password" />
+							</div>
+
+							<div class="my-3">
+								<label class="form-label" for="password-confirm">Confirm Password</label>
+								<input autocomplete="new-password"
+									@bind-value="_registerModel.PasswordConfirmation"
+									class="form-control font-monospace"
+									id="password-confirm"
+									name="LoginPassword"
+									placeholder="Password"
+									type="password" />
+							</div>
+
+							<div class="d-flex flex-row gap-3 align-items-center">
+								<button class="btn btn-success px-5" type="submit">Register</button>
+								<button class="btn btn-secondary px-3" type="reset">Reset</button>
+								
+								@if (_registerAttempted && _loginSuccessful is null)
+                                {
+                                	<p class="mx-3 my-0 lead text-primary">Registering account...</p>
+                                }
+							</div>
+						</EditForm>
 					</div>
-				</EditForm>
+				</div>
 			}
 		</Authorized>
 
 		<NotAuthorized>
 			<h3 class="text-danger mx-3 my-5">
 				<i class="bi-shield-fill-x me-3"></i>
-				You are not authorized to edit settings for Guild <span class="font-monospace">@_guild!.Id</span>.
+				You are not authorized to edit settings for Guild
+				<span class="font-monospace">@_guild!.Id</span>.
 			</h3>
 		</NotAuthorized>
 	</AuthorizeView>
 }
-else if (_guild is not null) 
+else if (_guild is not null)
 {
 	<div class="d-flex flex-column align-content-center gap-3">
 		<h3 class="text-primary">Loading...</h3>
 		<div class="lds-dual-ring"></div>
 	</div>
-	
 }
 else
 {
-	<h3 class="text-warning">No Server found for ID<span class="font-monospace">@GuildIdStr</span>.</h3>
+	<h3 class="text-warning">
+		No Server found for ID
+		<span class="font-monospace">@GuildIdStr</span>.
+	</h3>
 }
 
-
 @code {
-	[Parameter] public string? GuildIdStr { get; set; }
-	
+
+	[Parameter]
+	public string? GuildIdStr { get; set; }
+
 	private DiscordGuild? _guild;
 	private GuildConfig? _config;
 	private readonly LoginModel _loginModel = new();
+	private readonly RegisterModel _registerModel = new();
+	private LoginModel? _registeredAccount;
 
-	private bool _loginAttempted;
-	private bool? _loginSuccessful;
+	private bool _loginAttempted, _registerAttempted;
+	private bool? _loginSuccessful, _registerSuccessful;
 
-	private HttpRequestException _loginException;
-	
+	private HttpRequestException? _loginException, _requestException;
+
 	protected override async Task OnInitializedAsync()
 	{
 		await base.OnInitializedAsync();
@@ -145,24 +250,24 @@ else
 		}
 	}
 
-	private async Task OnValidSubmitAsync()
+	private async Task OnLoginAsync()
 	{
 		_loginAttempted = true;
 		_loginSuccessful = null;
-		
+
 		try
 		{
-			TokenResult? tokenResult = await AttemptLoginAsync();
-			
+			TokenResult? tokenResult = await AuthService.LoginAsync(_loginModel.Username, _loginModel.Password);
+
 			_config!.ApiLogin = new()
 			{
-				Username = _loginModel.Username, 
+				Username = _loginModel.Username,
 				Password = await EncryptionService.EncryptAsync(_loginModel.Password)
 			};
 			_config.Token = tokenResult;
-			
+
 			await ConfigService.SetGuildConfigAsync(_config);
-			
+
 			_loginSuccessful = true;
 		}
 		catch (HttpRequestException e)
@@ -170,13 +275,56 @@ else
 			_loginException = e;
 			_loginSuccessful = false;
 		}
-		
-		
+
+
 		_loginModel.Password = string.Empty;
 	}
 
-	private Task<TokenResult?> AttemptLoginAsync()
+	private async Task OnRegisterAsync()
 	{
-		return AuthService.LoginAsync(_loginModel.Username, _loginModel.Password);
+		_registerAttempted = true;
+		_loginSuccessful = null;
+
+		try
+		{
+			Response? apiResponse = await AuthService.RegisterNewUserAsync(_registerModel.Adapt<SocialGuard.Common.Data.Models.Authentication.RegisterModel>(), CancellationToken.None);
+			_loginSuccessful = false;
+		}
+		catch (HttpRequestException e)
+		{
+			_loginException = e;
+			_loginSuccessful = false;
+		}
+
+		_registeredAccount = new() { Username = _registerModel.Username, Password = _registerModel.Password };
+
+		_registerModel.Password = string.Empty;
+		_registerModel.PasswordConfirmation = string.Empty;
 	}
+
+	private async Task LoginWithRegisteredCredentialsAsync()
+	{
+		_loginModel.Username = _registeredAccount!.Username;
+		_loginModel.Password = _registeredAccount!.Password;
+
+		await OnLoginAsync();
+	}
+
+	private record RegisterModel
+	{
+		public const string PasswordRegex = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$";
+
+		[Required]
+		public string Username { get; set; } = string.Empty;
+
+		[Required, EmailAddress]
+		public string Email { get; set; } = string.Empty;
+
+		[Required, RegularExpression(PasswordRegex, ErrorMessage = "Password must contain at least 6 characters, 1 uppercase, 1 lowercase, 1 number and 1 special character.")]
+		public string Password { get; set; } = string.Empty;
+
+		[Required, Compare(nameof(Password))]
+		public string PasswordConfirmation { get; set; } = string.Empty;
+	}
+
 }
