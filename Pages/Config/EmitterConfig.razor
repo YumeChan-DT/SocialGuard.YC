@@ -143,7 +143,10 @@ else
 
 	private async Task OnValidSubmitAsync()
 	{
-		await EmitterClient.SetEmitterAsync(_emitterModel!.Adapt<Emitter>(), await AuthService.GetOrUpdateAuthTokenAsync(_guild!.Id) ?? null!);
+		Emitter emitter = _emitterModel!.Adapt<Emitter>();
+		
+		await EmitterClient.SetEmitterAsync(emitter, await AuthService.GetOrUpdateAuthTokenAsync(_guild!.Id) ?? null!);
+		_currentEmitter = emitter;
 		_displaySaveAlert = true;
 	}
 

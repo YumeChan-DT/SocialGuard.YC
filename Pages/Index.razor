@@ -5,35 +5,39 @@
 @inject DiscordClient Client;
 @inject AuthenticationStateProvider AuthStateProvider;
 
-<h1 class="mb-5 my-3">NSYS SocialGuard for YumeChan</h1>
+<div id="intro" class="my-5">
+	<h1 class="mx-xl-5 mb-3">NSYS SocialGuard for YumeChan</h1>
+	<p class="lead">This Web Panel will allow you to setup and manage SocialGuard for your Discord servers.</p>
+	
+	<div class="mt-5">
+    	<AuthorizeView>
+    		<Authorized>
+    			<div class="alert alert-primary">
+                	Start by selecting a server to manage, in the Panel Menu selector.
+                </div>
+    		</Authorized>
+    
+    		<NotAuthorized>
+    			<div class="alert alert-primary">
+    				Please <a href="/login">login</a> to configure SocialGuard for YC on your servers.
+    			</div>
+    		</NotAuthorized>
+    	</AuthorizeView>
+    </div>
+</div>
 
-<AuthorizeView>
-	<Authorized>
-		<div class="my-5">
-			<h2>Servers you manage <span class="ms-5 text-muted small">(Count: @_userManagedGuilds.Count.ToString())</span></h2>
-			
-			<div class="d-flex flex-column bd-highlight my-5">
-				<div class="p-2 bd-highlight text-center">
-					<div class="row align-items-stretch g-4">
-						@foreach (DiscordGuild guild in _userManagedGuilds)
-						{
-							<div class="col-lg-4 col-md-6 d-flex flex-column flex-grow-0">
-								@GuildCard(guild)
-							</div>
-						}
-					</div>
-				</div>
-			</div>
-		</div>
-	</Authorized>
 
-	<NotAuthorized>
-		<div class="alert alert-primary">
-			Please <a href="/login">login</a> to configure SocialGuard for YC on your servers.
-		</div>
-	</NotAuthorized>
-</AuthorizeView>
 
+<div id="links" class="my-5">
+	<h3 class="my-3">Useful Resources</h3>
+	
+	<ul>
+		<li><a href="https://github.com/YumeChan-DT/SocialGuard.YC">GitHub Repository</a></li>
+		<li><a href="https://socialguard.net">NSYS SocialGuard - Website</a></li>
+		<li><a href="https://socialguard.net/viewer">NSYS SocialGuard - Records Browser</a></li>
+		<li><a href="https://api.socialguard.net">NSYS SocialGuard - API</a></li>
+	</ul>
+</div>
 @code {
 
 
