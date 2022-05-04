@@ -52,12 +52,17 @@ public class PluginManifest : Plugin
 
 	public override async Task LoadAsync()
 	{
-		CancellationToken cancellationToken = CancellationToken.None; // May get added into method parameters later on.
+		CancellationToken ct = CancellationToken.None; // May get added into method parameters later on.
 		await base.LoadAsync();
-
-		await _componentInteractionsListener.StartAsync(cancellationToken);
-		await _broadcastsListener.StartAsync(cancellationToken);
-		await _guildTrafficHandler.StartAsync(cancellationToken);
+		
+		// Start listeners/handlers in the background.
+		_ = Task.Run(async () =>
+		{
+			_logger.LogInformation("Starting SocialGuard for YC background services...");
+			await _broadcastsListener.StartAsync(ct);
+			await _guildTrafficHandler.StartAsync(ct);
+			await _componentInteractionsListener.StartAsync(ct);
+		}, ct);
 
 
 		_logger.LogInformation("Loaded {plugin}.", DisplayName);
@@ -67,11 +72,11 @@ public class PluginManifest : Plugin
 
 	public override async Task UnloadAsync()
 	{
-		CancellationToken cancellationToken = CancellationToken.None; // May get added into method parameters later on.
+		CancellationToken ct = CancellationToken.None; // May get added into method parameters later on.
 
-		await _componentInteractionsListener.StopAsync(cancellationToken);
-		await _broadcastsListener.StopAsync(cancellationToken);
-		await _guildTrafficHandler.StopAsync(cancellationToken);
+		await _componentInteractionsListener.StopAsync(ct);
+		await _broadcastsListener.StopAsync(ct);
+		await _guildTrafficHandler.StopAsync(ct);
 
 		_logger.LogInformation("Unloaded {plugin}.", DisplayName);
 		await base.UnloadAsync();
