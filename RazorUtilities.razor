@@ -1,4 +1,15 @@
-﻿@code {
+﻿ @* ReSharper disable file UnusedParameter.Local *@
+ @* ReSharper disable file InconsistentNaming *@
+ 
+ @code {
+
+	public static RenderFragment LoadingSpinner { get; } = __builder =>
+	{
+		<div class="d-flex flex-column align-content-center gap-3">
+			<h3 class="text-primary">Loading...</h3>
+			<div class="lds-dual-ring"></div>
+		</div>
+	};
 	
 	public static RenderFragment<DiscordGuild> GuildCornerInfo { get; } = guild => __builder =>
     {
@@ -16,5 +27,4 @@
 		    </div>
 	    </div>
     };
-	
 }
