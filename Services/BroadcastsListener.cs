@@ -10,10 +10,6 @@ using SocialGuard.Common.Hubs;
 using SocialGuard.Common.Services;
 using SocialGuard.YC.Data.Models;
 using SocialGuard.YC.Data.Models.Config;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using YumeChan.PluginBase.Tools;
 using YumeChan.PluginBase.Tools.Data;
 

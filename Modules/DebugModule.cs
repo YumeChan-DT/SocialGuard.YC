@@ -1,12 +1,10 @@
-﻿using DnsClient.Internal;
-using DSharpPlus;
+﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
-using System.Threading.Tasks;
 using YumeChan.PluginBase.Tools.Data;
 
 

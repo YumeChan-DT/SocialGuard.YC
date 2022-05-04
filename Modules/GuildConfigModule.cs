@@ -7,10 +7,8 @@ using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
 using SocialGuard.YC.Services.Security;
 using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
 using MongoDB.Driver;
 using SocialGuard.Common.Data.Models.Authentication;
-using System.Threading;
 using System.Text;
 
 namespace SocialGuard.YC.Modules

@@ -1,9 +1,7 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
-using DSharpPlus.Entities;
 using YumeChan.PluginBase.Tools.Data;
-using System.Threading.Tasks;
 using MongoDB.Driver;
 using SocialGuard.Common.Services;
 using SocialGuard.YC.Data.Models.Config;

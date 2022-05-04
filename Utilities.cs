@@ -1,14 +1,10 @@
 ﻿using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.Common.Data.Models;
-using System.Net.Http;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Security.Cryptography;
-using System;
 using DSharpPlus.Entities;
 using DSharpPlus;
 using MongoDB.Driver;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Security.Claims;
 using System.Text.RegularExpressions;

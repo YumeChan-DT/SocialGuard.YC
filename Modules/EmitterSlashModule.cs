@@ -1,9 +1,6 @@
-﻿using DSharpPlus.CommandsNext;
-using DSharpPlus;
+﻿using DSharpPlus;
 using DSharpPlus.SlashCommands;
 using SocialGuard.YC.Data.Models.Config;
-using SocialGuard.YC.Data.Models;
-using System.Threading.Tasks;
 using DSharpPlus.SlashCommands.Attributes;
 using MongoDB.Driver;
 using SocialGuard.YC.Services;
