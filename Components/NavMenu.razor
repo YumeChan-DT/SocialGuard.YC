@@ -1,6 +1,7 @@
 ﻿@using System.Collections.Immutable
 @inject DiscordClient Client;
 @inject AuthenticationStateProvider AuthStateProvider;
+@inject IJSRuntime Js;
 
 <div class="top-row ps-3 navbar navbar-dark">
 	<div class="container-fluid">
@@ -68,6 +69,11 @@
 			                      where m is not null && ((m.Permissions & Permissions.ManageGuild) is not 0 || (m.Permissions & Permissions.Administrator) is not 0)
 			                      select g.Value).ToImmutableList();
 		}
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await base.OnAfterRenderAsync(firstRender);
 	}
 
 }

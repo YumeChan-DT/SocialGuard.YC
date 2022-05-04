@@ -21,6 +21,7 @@
         if (firstRender)
         {
             await JsRuntime.InvokeVoidAsync("setMainLayout", "fluid");
+            await JsRuntime.InvokeVoidAsync("loadCss", "css/layout.css");
         }
     }
 

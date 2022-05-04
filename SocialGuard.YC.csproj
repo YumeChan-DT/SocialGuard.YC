@@ -35,7 +35,7 @@
     <None Include="README.md" Pack="true" PackagePath="/" />
     
     <!-- Hiding compiled CSS files, as we exclusively use SCSS in sources -->
-    <None Update="**/*.css" Visible="false" />
+    <Content Update="**/*.css" Visible="false" />
     
     <EmbeddedResource Include="wwwroot/**/*.*" />
     
@@ -70,21 +70,6 @@
   <ItemGroup>
     <!-- Used only for development, to reference NetRunner's web assets -->
     <None Include="$(YumeChan_PluginsLocation)\..\wwwroot\**\*.*" Link="wwwroot\baseref\%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <!-- Add reference to generated css scopes file -->
-    <Content Include="$(IntermediateOutputPath)/scopedcss/projectbundle/**">
-      <Link>wwwroot/%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
-
-    <EmbeddedResource Include="$(IntermediateOutputPath)/scopedcss/projectbundle/**">
-      <Link>wwwroot/%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <Visible>false</Visible>
-    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
