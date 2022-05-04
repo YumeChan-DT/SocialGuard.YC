@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
     
-    <Version>3.4</Version>
+    <Version>3.4.1</Version>
     <Authors>Sakura Akeno Isayeki</Authors>
     <Company>Nodsoft Systems</Company>
     <Product>NSYS SocialGuard (YC)</Product>
@@ -80,6 +80,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+
+    <EmbeddedResource Include="$(IntermediateOutputPath)/scopedcss/projectbundle/**">
+      <Link>wwwroot/%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Visible>false</Visible>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
