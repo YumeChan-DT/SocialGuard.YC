@@ -59,7 +59,7 @@ public sealed class PluginManifest : Plugin
 		}, ct);
 
 
-		_logger.LogInformation("Loaded {Plugin}.", DisplayName);
+		_logger.LogInformation("Loaded {Plugin}", DisplayName);
 		_logger.LogInformation("Current SocialGuard API Path: {ApiPath}", _apiConfig.ApiHost);
 	}
 
@@ -72,7 +72,7 @@ public sealed class PluginManifest : Plugin
 		await _broadcastsListener.StopAsync(ct);
 		await _guildTrafficHandler.StopAsync(ct);
 
-		_logger.LogInformation("Unloaded {Plugin}.", DisplayName);
+		_logger.LogInformation("Unloaded {Plugin}", DisplayName);
 		await base.UnloadAsync();
 	}
 }
@@ -90,18 +90,19 @@ public sealed class DependencyRegistrations : DependencyInjectionHandler
 		// Encryption service for password storage.
 		services.AddSingleton<IEncryptionService>(static services =>
 		{
-			if (services.GetRequiredService<IApiConfig>().AzureIdentity is not null)
+			if (services.GetRequiredService<IApiConfig>().AzureIdentity is null)
 			{
-				KeyVaultService kvs = ActivatorUtilities.CreateInstance<KeyVaultService>(services);
-				kvs.InitializeAsync(CancellationToken.None).GetAwaiter().GetResult();
-				return kvs;
+				return ActivatorUtilities.CreateInstance<LocalEncryptionService>(services);
 			}
 
-			return ActivatorUtilities.CreateInstance<LocalEncryptionService>(services);
+			KeyVaultService kvs = ActivatorUtilities.CreateInstance<KeyVaultService>(services);
+			kvs.InitializeAsync(CancellationToken.None).GetAwaiter().GetResult();
+			return kvs;
+
 		});
 
 		// Authorization handlers for Web UI.
-		services.AddAuthorizationCore(options =>
+		services.AddAuthorizationCore(static options =>
 		{
 			options.AddPolicy(AuthorizationExtensions.RequireManageGuildPermission, policy => policy
 				.RequireGuildRole(Permissions.ManageGuild));
@@ -116,19 +117,19 @@ public sealed class DependencyRegistrations : DependencyInjectionHandler
 			.AddSingleton<GuildTrafficHandler>()
 			.AddSingleton<BroadcastsListener>()
 			.AddSingleton<ComponentInteractionsListener>()
-			.AddSingleton(services =>
+			.AddSingleton(static services =>
 			{
 				TrustlistClient client = ActivatorUtilities.CreateInstance<TrustlistClient>(services);
 				client.SetBaseUri(new(services.GetRequiredService<IApiConfig>().ApiHost));
 				return client;
 			})
-			.AddSingleton(services =>
+			.AddSingleton(static services =>
 			{
 				EmitterClient client = ActivatorUtilities.CreateInstance<EmitterClient>(services);
 				client.SetBaseUri(new(services.GetRequiredService<IApiConfig>().ApiHost));
 				return client;
 			})
 			.AddSingleton<ApiAuthService>()
-			.AddSingleton(s => s.GetRequiredService<IInterfaceConfigProvider<IApiConfig>>().InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig());
+			.AddSingleton(static s => s.GetRequiredService<IInterfaceConfigProvider<IApiConfig>>().InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig());
 	}
 }
