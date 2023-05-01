@@ -105,7 +105,7 @@
                             				</h3>
     
                             				<div class="text-danger">
-                            					<p class="lead">Failed to log in (@_loginException.StatusCode.ToString()) :</p>
+                            					<p class="lead">Failed to log in (@_loginException!.StatusCode.ToString()) :</p>
                             					<p>@_loginException.Message</p>
                             				</div>
                             			}
@@ -280,12 +280,12 @@ else
 		try
 		{
 			Response? apiResponse = await AuthService.RegisterNewUserAsync(_registerModel.Adapt<SocialGuard.Common.Data.Models.Authentication.RegisterModel>(), CancellationToken.None);
-			_loginSuccessful = false;
+			_registerSuccessful = false;
 		}
 		catch (HttpRequestException e)
 		{
 			_loginException = e;
-			_loginSuccessful = false;
+			_registerSuccessful = false;
 		}
 
 		_registeredAccount = new() { Username = _registerModel.Username, Password = _registerModel.Password };
@@ -304,7 +304,7 @@ else
 
 	private record RegisterModel
 	{
-		public const string PasswordRegex = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$";
+		public const string PasswordRegex = @"^(?:(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,})$";
 
 		[Required]
 		public string Username { get; set; } = string.Empty;
@@ -312,7 +312,7 @@ else
 		[Required, EmailAddress]
 		public string Email { get; set; } = string.Empty;
 
-		[Required, RegularExpression(PasswordRegex, ErrorMessage = "Password must contain at least 6 characters, 1 uppercase, 1 lowercase, 1 number and 1 special character.")]
+		[Required, RegularExpression(PasswordRegex, ErrorMessage = "Password must contain at least 8 characters, 1 uppercase, 1 lowercase, 1 number and 1 special character.")]
 		public string Password { get; set; } = string.Empty;
 
 		[Required, Compare(nameof(Password))]

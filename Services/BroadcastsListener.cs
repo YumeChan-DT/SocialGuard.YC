@@ -38,7 +38,7 @@ public class BroadcastsListener : IHostedService
 			.WithAutomaticReconnect()
 			.Build();
 
-		void LogBroadcast(string name, ulong userid) => logger.LogDebug("Received SignalR Boradcast: {name} {userId}", name, userid);
+		void LogBroadcast(string name, ulong userid) => logger.LogDebug("Received SignalR Boradcast: {Name} {UserId}", name, userid);
 
 		_hubConnection.On<ulong, TrustlistEntry>(nameof(ITrustlistHubPush.NotifyNewEntry), async (userId, entry) =>
 		{
@@ -66,7 +66,7 @@ public class BroadcastsListener : IHostedService
 			try
 			{
 				await _hubConnection.StartAsync(cancellationToken);
-				_logger.LogInformation("Now listening Trustlist Hub. (Connection ID {id}; State {state})", _hubConnection.ConnectionId, _hubConnection.State);
+				_logger.LogInformation("Now listening to Trustlist Hub. (Connection ID {Id}; State {State})", _hubConnection.ConnectionId, _hubConnection.State);
 			}
 			catch
 			{
@@ -85,8 +85,8 @@ public class BroadcastsListener : IHostedService
 
 	protected async Task BroadcastUpdateAsync(BroadcastUpdateType type, ulong userId, TrustlistEntry entry)
 	{
-		TrustlistUser trustlistUser = null;
-		DiscordEmbed embed = null;
+		TrustlistUser? trustlistUser = null;
+		DiscordEmbed? embed = null;
 
 		using IAsyncCursor<GuildConfig> guilds = await _guildConfig.FindAsync(c => c.BanLogChannel != 0 || c.JoinLogChannel != 0);
 
@@ -96,7 +96,7 @@ public class BroadcastsListener : IHostedService
 			{
 				DiscordGuild guild = await _discordClient.GetGuildAsync(guildConfig.Id);
 
-				if (guild.Members.GetValueOrDefault(userId) is DiscordMember member)
+				if (guild.Members.GetValueOrDefault(userId) is { } member)
 				{
 					trustlistUser ??= await _trustlistClient.LookupUserAsync(userId);
 					embed ??= Utilities.BuildUserRecordEmbed(trustlistUser, member, entry);
@@ -104,12 +104,12 @@ public class BroadcastsListener : IHostedService
 
 					await actionLogChannel.SendMessageAsync(embed: embed, content: type switch
 					{
-						BroadcastUpdateType.NewEntry => $"New Entry added by Emitter **{entry.Emitter.DisplayName}** (`{entry.Emitter.Login}`) for user {member.Mention} :",
-						BroadcastUpdateType.Escalation => $"Entry by Emitter **{entry.Emitter.DisplayName}** (`{entry.Emitter.Login}`) was escalated for user {member.Mention} :",
+						BroadcastUpdateType.NewEntry => $"New Entry added by Emitter **{entry.Emitter?.DisplayName}** (`{entry.Emitter?.Login}`) for user {member.Mention} :",
+						BroadcastUpdateType.Escalation => $"Entry by Emitter **{entry.Emitter?.DisplayName}** (`{entry.Emitter?.Login}`) was escalated for user {member.Mention} :",
 						_ => throw new NotImplementedException()
 					});
 
-					if (trustlistUser.GetMaxEscalationLevel() >= 3 && guildConfig.AutoBanBlacklisted)
+					if (trustlistUser?.GetMaxEscalationLevel() >= 3 && guildConfig.AutoBanBlacklisted)
 					{
 						await member.BanAsync(0, $"[SocialGuard] \n{entry.EscalationNote}");
 						await actionLogChannel.SendMessageAsync($"User **{member.GetFullUsername()}** ({member.Mention}) banned from Autoban (entry sync).");
@@ -118,7 +118,7 @@ public class BroadcastsListener : IHostedService
 			}
 			catch (Exception e)
 			{
-				_logger.LogError("Broadcasting record {userId} to guild {guildId} threw following exception: \n{e}", userId, guildConfig.Id, e);
+				_logger.LogError(e, "Broadcasting record {UserId} to guild {GuildId} threw an exception.", userId, guildConfig.Id);
 				continue;
 			}
 		}
