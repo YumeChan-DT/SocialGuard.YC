@@ -5,6 +5,7 @@ using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
 using SocialGuard.YC.Services.Security;
 using DSharpPlus;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Authorization;
 using SocialGuard.YC.Infrastructure.Security.Authorization;
 using YumeChan.PluginBase;
@@ -12,7 +13,9 @@ using YumeChan.PluginBase.Tools;
 
 namespace SocialGuard.YC;
 
-public class PluginManifest : Plugin
+/// <inheritdoc />
+[PublicAPI]
+public sealed class PluginManifest : Plugin
 {
 	public override string DisplayName => "NSYS SocialGuard (YC)";
 	public override bool StealthMode => false;
@@ -27,13 +30,13 @@ public class PluginManifest : Plugin
 	private readonly GuildTrafficHandler _guildTrafficHandler;
 	private readonly ComponentInteractionsListener _componentInteractionsListener;
 
-	internal static string VersionString { get; private set; }
+	internal static string VersionString { get; private set; } = string.Empty;
 
 
 	public PluginManifest(ILogger<PluginManifest> logger, IApiConfig config,
 		BroadcastsListener broadcastsListener, GuildTrafficHandler guildTrafficHandler, ComponentInteractionsListener componentInteractionsListener)
 	{
-		VersionString ??= Version;
+		VersionString = Version;
 		_logger = logger;
 		_broadcastsListener = broadcastsListener;
 		_guildTrafficHandler = guildTrafficHandler;
@@ -56,8 +59,8 @@ public class PluginManifest : Plugin
 		}, ct);
 
 
-		_logger.LogInformation("Loaded {plugin}.", DisplayName);
-		_logger.LogInformation("Current SocialGuard API Path: {apiPath}", _apiConfig.ApiHost);
+		_logger.LogInformation("Loaded {Plugin}.", DisplayName);
+		_logger.LogInformation("Current SocialGuard API Path: {ApiPath}", _apiConfig.ApiHost);
 	}
 
 
@@ -69,18 +72,23 @@ public class PluginManifest : Plugin
 		await _broadcastsListener.StopAsync(ct);
 		await _guildTrafficHandler.StopAsync(ct);
 
-		_logger.LogInformation("Unloaded {plugin}.", DisplayName);
+		_logger.LogInformation("Unloaded {Plugin}.", DisplayName);
 		await base.UnloadAsync();
 	}
 }
 
-public class DependencyRegistrations : DependencyInjectionHandler
+/// <summary>
+/// Handles dependency injection regstrations for SocialGuard YC.
+/// </summary>
+public sealed class DependencyRegistrations : DependencyInjectionHandler
 {
 	public override IServiceCollection ConfigureServices(IServiceCollection services)
 	{
-		services.AddHttpClient<RestClientBase>((services, client) => client.BaseAddress = new(services.GetService<IApiConfig>().ApiHost));
+		// HTTP client for SocialGuard API.
+		services.AddHttpClient<RestClientBase>(static (services, client) => client.BaseAddress = new(services.GetRequiredService<IApiConfig>().ApiHost));
 
-		services.AddSingleton<IEncryptionService>(services =>
+		// Encryption service for password storage.
+		services.AddSingleton<IEncryptionService>(static services =>
 		{
 			if (services.GetRequiredService<IApiConfig>().AzureIdentity is not null)
 			{
@@ -88,12 +96,11 @@ public class DependencyRegistrations : DependencyInjectionHandler
 				kvs.InitializeAsync(CancellationToken.None).GetAwaiter().GetResult();
 				return kvs;
 			}
-			else
-			{
-				return ActivatorUtilities.CreateInstance<LocalEncryptionService>(services);
-			}
+
+			return ActivatorUtilities.CreateInstance<LocalEncryptionService>(services);
 		});
 
+		// Authorization handlers for Web UI.
 		services.AddAuthorizationCore(options =>
 		{
 			options.AddPolicy(AuthorizationExtensions.RequireManageGuildPermission, policy => policy

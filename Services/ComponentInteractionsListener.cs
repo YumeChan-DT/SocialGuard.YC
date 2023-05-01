@@ -13,10 +13,10 @@ namespace SocialGuard.YC;
 public class ComponentInteractionsListener : IHostedService
 {
 	private readonly IMongoCollection<GuildConfig> _configCollection;
-	private readonly ILogger<GuildTrafficHandler> _logger;
+	private readonly ILogger<ComponentInteractionsListener> _logger;
 	private readonly DiscordClient _discordClient;
 
-	public ComponentInteractionsListener(ILogger<GuildTrafficHandler> logger, DiscordClient discordClient, IDatabaseProvider<PluginManifest> database)
+	public ComponentInteractionsListener(ILogger<ComponentInteractionsListener> logger, DiscordClient discordClient, IDatabaseProvider<PluginManifest> database)
 	{
 		_configCollection = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 		_logger = logger;
@@ -55,12 +55,12 @@ public class ComponentInteractionsListener : IHostedService
 
 		if ((await e.Guild.GetMemberAsync(e.User.Id)).Permissions.HasPermission(Permissions.ManageGuild))
 		{
-			DiscordChannel channel = null;
+			DiscordChannel? channel = null;
 			GuildConfig config = await _configCollection.FindOrCreateConfigAsync(e.Guild.Id);
 
 			if (e.Values?.First() is not "0")
 			{
-				channel = e.Guild.GetChannel(ulong.Parse(e.Values.First()));
+				channel = e.Guild.GetChannel(ulong.Parse(e.Values!.First()));
 
 				if (channel is not null)
 				{
@@ -79,8 +79,6 @@ public class ComponentInteractionsListener : IHostedService
 				Content = $"({e.User.Mention}) Edited Joinlog channel to {channel?.Mention ?? "None"}.",
 				IsEphemeral = true
 			});
-
-			e.Handled = true;
 		}
 	}
 
@@ -90,12 +88,12 @@ public class ComponentInteractionsListener : IHostedService
 
 		if ((await e.Guild.GetMemberAsync(e.User.Id)).Permissions.HasPermission(Permissions.ManageGuild))
 		{
-			DiscordChannel channel = null;
+			DiscordChannel? channel = null;
 			GuildConfig config = await _configCollection.FindOrCreateConfigAsync(e.Guild.Id);
 
 			if (e.Values?.First() is not "0")
 			{
-				channel = e.Guild.GetChannel(ulong.Parse(e.Values.First()));
+				channel = e.Guild.GetChannel(ulong.Parse(e.Values!.First()));
 
 				if (channel is not null)
 				{
@@ -114,8 +112,6 @@ public class ComponentInteractionsListener : IHostedService
 				Content = $"({e.User.Mention}) Edited Banlog channel to {channel?.Mention ?? "None"}.",
 				IsEphemeral = true
 			});
-
-			e.Handled = true;
 		}
 	}
 
@@ -142,8 +138,6 @@ public class ComponentInteractionsListener : IHostedService
 				Content = $"({e.User.Mention}) Autoban setting is now {(config.AutoBanBlacklisted ? "on" : "off")}.",
 				IsEphemeral = true
 			});
-
-			e.Handled = true;
 		}
 	}
 
@@ -172,9 +166,7 @@ public class ComponentInteractionsListener : IHostedService
 					: "All records will now be displayed in Joinlog.",
 
 				IsEphemeral = true
-			});
-
-			e.Handled = true;
+			}); 
 		}
 	}
 }

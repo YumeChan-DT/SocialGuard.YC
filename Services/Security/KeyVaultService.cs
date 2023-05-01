@@ -10,7 +10,6 @@ internal class KeyVaultService : IEncryptionService
 {
 	internal static EncryptionAlgorithm Algorithm => EncryptionAlgorithm.RsaOaep256;
 
-	private readonly IApiConfig _apiConfig;
 	private readonly ClientSecretCredential _clientSecretCredential;
 	private readonly KeyClient _keyClient;
 	private CryptographyClient _cryptographyClient;
@@ -24,9 +23,8 @@ internal class KeyVaultService : IEncryptionService
 
 	public KeyVaultService(IApiConfig apiConfig)
 	{
-		_apiConfig = apiConfig;
-		_clientSecretCredential = new(_apiConfig.AzureIdentity.TenantId, _apiConfig.AzureIdentity.ClientId, _apiConfig.AzureIdentity.ClientSecret);
-		_keyClient = new(new(_apiConfig.KeyVaultUri), _clientSecretCredential);
+		_clientSecretCredential = new(apiConfig.AzureIdentity.TenantId, apiConfig.AzureIdentity.ClientId, apiConfig.AzureIdentity.ClientSecret);
+		_keyClient = new(new(apiConfig.KeyVaultUri), _clientSecretCredential);
 	}
 
 	public async Task InitializeAsync(CancellationToken ct)
@@ -36,14 +34,12 @@ internal class KeyVaultService : IEncryptionService
 
 		await foreach (KeyProperties keyProp in _keyClient.GetPropertiesOfKeysAsync(ct))
 		{
-			if (keyProp is { Name: PasswordEncryptionKeyName, Enabled: true })
+			if (keyProp is { Name: PasswordEncryptionKeyName, Enabled: true }
+				&& (await _keyClient.GetKeyAsync(PasswordEncryptionKeyName, cancellationToken: ct)).Value is { } key 
+				&& key.KeyOperations.Contains(KeyOperation.Decrypt) && key.KeyOperations.Contains(KeyOperation.Encrypt))
 			{
-				if ((await _keyClient.GetKeyAsync(PasswordEncryptionKeyName, cancellationToken: ct)).Value is KeyVaultKey key
-					&& key.KeyOperations.Contains(KeyOperation.Decrypt) && key.KeyOperations.Contains(KeyOperation.Encrypt))
-				{
-					vaultKey = key;
-					break;
-				}
+				vaultKey = key;
+				break;
 			}
 		}
 
