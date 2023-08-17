@@ -88,16 +88,14 @@ public static class Utilities
 		return builder.Build();
 	}
 
-	private static (DiscordColor color, string name, string desc) GetEscalationDescriptions(byte escalationLevel)
+	private static (DiscordColor color, string name, string desc) GetEscalationDescriptions(byte escalationLevel) => escalationLevel switch
 	{
-		return escalationLevel switch
-		{
-			0 => (DiscordColor.Green, "Clear", "This user has no record, and is cleared safe."),
-			1 => (DiscordColor.Blue, "Suspicious", "This user is marked as suspicious. Their behaviour should be monitored."),
-			2 => (DiscordColor.Orange, "Untrusted", "This user is marked as untrusted. Please exerce caution when interacting with them."),
-			>= 3 => (DiscordColor.Red, "Blacklisted", "This user is dangerous and has been blacklisted. Banning this user is greatly advised.")
-		};
-	}
+		0 => (DiscordColor.Green, "Clear", "This user has no record, and is cleared safe."),
+		1 => (DiscordColor.Blue, "Suspicious", "This user is marked as suspicious. Their behaviour should be monitored."),
+		2 => (DiscordColor.Orange, "Untrusted", "This user is marked as untrusted. Please exerce caution when interacting with them."),
+		3 => (DiscordColor.Red, "Blacklisted", "This user is dangerous and has been blacklisted. Banning this user is greatly advised."),
+		> 3 => (DiscordColor.Red, "☢️ **Nuclear** ☢️", "This user is extremely dangerous to any community. You are directed to ban this user on sight, for your safety.")
+	};
 
 	internal static string GenerateLocalMasterKey()
 	{
