@@ -57,10 +57,10 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="8.0.8" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
-    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.5.3">
-      <PrivateAssets>all</PrivateAssets>
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.5.3" PrivateAssets="all">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" Version="3.6.143" />
     <PackageReference Include="SocialGuard.Common" Version="3.1.0-rc2" />
     <PackageReference Include="YumeChan.PluginBase" Version="4.0.38-alpha" />
     <PackageReference Include="YumeChan.PluginBase.Database.MongoDB" Version="4.0.38-alpha" />
