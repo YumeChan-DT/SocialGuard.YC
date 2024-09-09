@@ -18,8 +18,11 @@ namespace SocialGuard.YC;
 public sealed class PluginManifest : Plugin
 {
 	public override string DisplayName => "NSYS SocialGuard (YC)";
-	public override bool StealthMode => false;
+	public override string AuthorContact => "admin@nodsoft.net";
 
+	public override Uri? IconUri { get; } = new("https://socialguard.net/assets/icons/android-chrome-512x512.png");
+
+	public override bool StealthMode => false;
 	public override bool ShouldUseNetRunner => true;
 
 	internal const string ApiConfigFileName = "api";
@@ -84,6 +87,8 @@ public sealed class DependencyRegistrations : DependencyInjectionHandler
 {
 	public override IServiceCollection ConfigureServices(IServiceCollection services)
 	{
+		services.AddTransient(static s => s.GetRequiredService<IInterfaceConfigProvider<IApiConfig>>().InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig());
+		
 		// HTTP client for SocialGuard API.
 		services.AddHttpClient<RestClientBase>(static (services, client) => client.BaseAddress = new(services.GetRequiredService<IApiConfig>().ApiHost));
 
@@ -112,24 +117,27 @@ public sealed class DependencyRegistrations : DependencyInjectionHandler
 		});
 		
 		services.AddScoped<IAuthorizationHandler, GuildAccessAuthorizationHandler>();
+
+		services.AddSingleton<GuildTrafficHandler>();
+		services.AddSingleton<BroadcastsListener>();
+		services.AddSingleton<ComponentInteractionsListener>();
+		services.AddSingleton<ApiAuthService>();
+		services.AddSingleton<GuildConfigService>();
+
+		services.AddSingleton(static services =>
+		{
+			TrustlistClient client = ActivatorUtilities.CreateInstance<TrustlistClient>(services);
+			client.SetBaseUri(new(services.GetRequiredService<IApiConfig>().ApiHost));
+			return client;
+		});
+
+		services.AddSingleton(static services =>
+		{
+			EmitterClient client = ActivatorUtilities.CreateInstance<EmitterClient>(services);
+			client.SetBaseUri(new(services.GetRequiredService<IApiConfig>().ApiHost));
+			return client;
+		});
 		
-		return services
-			.AddSingleton<GuildTrafficHandler>()
-			.AddSingleton<BroadcastsListener>()
-			.AddSingleton<ComponentInteractionsListener>()
-			.AddSingleton(static services =>
-			{
-				TrustlistClient client = ActivatorUtilities.CreateInstance<TrustlistClient>(services);
-				client.SetBaseUri(new(services.GetRequiredService<IApiConfig>().ApiHost));
-				return client;
-			})
-			.AddSingleton(static services =>
-			{
-				EmitterClient client = ActivatorUtilities.CreateInstance<EmitterClient>(services);
-				client.SetBaseUri(new(services.GetRequiredService<IApiConfig>().ApiHost));
-				return client;
-			})
-			.AddSingleton<ApiAuthService>()
-			.AddSingleton(static s => s.GetRequiredService<IInterfaceConfigProvider<IApiConfig>>().InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig());
+		return services;
 	}
 }

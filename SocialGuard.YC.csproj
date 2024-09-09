@@ -14,6 +14,7 @@
     <Copyright>GNU LGPLv3</Copyright>
     <RepositoryType>Git</RepositoryType>
     <RepositoryUrl>https://github.com/YumeChan-DT/SocialGuard.YC</RepositoryUrl>
+    <PackageProjectUrl>https://socialguard.net</PackageProjectUrl>
     <PackageIconUrl>https://socialguard.net/assets/icons/android-chrome-512x512.png</PackageIconUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
