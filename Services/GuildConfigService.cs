@@ -1,7 +1,7 @@
 ﻿using MongoDB.Driver;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services.Security;
-using YumeChan.PluginBase.Tools.Data;
+using YumeChan.PluginBase.Database.MongoDB;
 
 namespace SocialGuard.YC.Services;
 
@@ -14,7 +14,7 @@ public class GuildConfigService
 	private readonly ApiAuthService _apiAuth;
 	private readonly IEncryptionService _encryption;
 
-	public GuildConfigService(IDatabaseProvider<PluginManifest> database, ApiAuthService apiAuth, IEncryptionService encryption)
+	public GuildConfigService(IMongoDatabaseProvider<PluginManifest> database, ApiAuthService apiAuth, IEncryptionService encryption)
 	{
 		_guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 		_apiAuth = apiAuth;

@@ -1,7 +1,7 @@
-﻿using YumeChan.PluginBase.Tools;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using SocialGuard.YC.Data.Models.Config;
+using YumeChan.PluginBase.Tools;
 
 namespace SocialGuard.YC.Services.Security;
 

@@ -1,8 +1,8 @@
-﻿using Azure.Identity;
+﻿using System.Text;
+using Azure.Identity;
 using Azure.Security.KeyVault.Keys;
 using Azure.Security.KeyVault.Keys.Cryptography;
 using SocialGuard.YC.Data.Models.Config;
-using System.Text;
 
 namespace SocialGuard.YC.Services.Security;
 

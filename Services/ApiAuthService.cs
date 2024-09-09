@@ -4,10 +4,8 @@ using SocialGuard.Common.Data.Models.Authentication;
 using SocialGuard.Common.Services;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services.Security;
+using YumeChan.PluginBase.Database.MongoDB;
 using YumeChan.PluginBase.Tools;
-using YumeChan.PluginBase.Tools.Data;
-
-
 
 namespace SocialGuard.YC.Services;
 
@@ -16,8 +14,12 @@ public class ApiAuthService : AuthenticationClient
 	private readonly IEncryptionService _encryption;
 	private readonly IMongoCollection<GuildConfig> _guildConfig;
 
-	public ApiAuthService(HttpClient httpClient, IInterfaceConfigProvider<IApiConfig> configProvider, IEncryptionService encryption, IDatabaseProvider<PluginManifest> database) 
-		: base(httpClient)
+	public ApiAuthService(
+		HttpClient httpClient, 
+		IInterfaceConfigProvider<IApiConfig> configProvider, 
+		IEncryptionService encryption, 
+		IMongoDatabaseProvider<PluginManifest> database
+	) : base(httpClient)
 	{
 		httpClient.BaseAddress = new(configProvider.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig().ApiHost);
 		_encryption = encryption;

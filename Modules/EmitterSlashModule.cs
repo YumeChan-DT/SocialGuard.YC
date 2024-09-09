@@ -4,11 +4,11 @@ using SocialGuard.YC.Data.Models.Config;
 using DSharpPlus.SlashCommands.Attributes;
 using MongoDB.Driver;
 using SocialGuard.YC.Services;
-using YumeChan.PluginBase.Tools.Data;
 using DSharpPlus.Entities;
 using DSharpPlus.CommandsNext.Attributes;
 using SocialGuard.Common.Services;
 using SocialGuard.Common.Data.Models;
+using YumeChan.PluginBase.Database.MongoDB;
 
 namespace SocialGuard.YC.Modules
 {
@@ -21,7 +21,7 @@ namespace SocialGuard.YC.Modules
 			private readonly EmitterClient _emitterClient;
 			private readonly ApiAuthService _apiAuthService;
 
-			public EmitterSlashModule(EmitterClient emitterClient, ApiAuthService apiAuthService, IDatabaseProvider<PluginManifest> database)
+			public EmitterSlashModule(EmitterClient emitterClient, ApiAuthService apiAuthService, IMongoDatabaseProvider<PluginManifest> database)
 			{
 				guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 				_emitterClient = emitterClient;

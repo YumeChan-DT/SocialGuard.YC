@@ -1,14 +1,13 @@
-﻿using DSharpPlus.EventArgs;
-using DSharpPlus;
+﻿using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using SocialGuard.YC.Data.Models.Config;
-using YumeChan.PluginBase.Tools.Data;
-using SocialGuard.YC.Services;
-using DSharpPlus.Entities;
-using Microsoft.Extensions.Logging;
+using YumeChan.PluginBase.Database.MongoDB;
 
-namespace SocialGuard.YC;
+namespace SocialGuard.YC.Services;
 
 public class ComponentInteractionsListener : IHostedService
 {
@@ -16,7 +15,7 @@ public class ComponentInteractionsListener : IHostedService
 	private readonly ILogger<ComponentInteractionsListener> _logger;
 	private readonly DiscordClient _discordClient;
 
-	public ComponentInteractionsListener(ILogger<ComponentInteractionsListener> logger, DiscordClient discordClient, IDatabaseProvider<PluginManifest> database)
+	public ComponentInteractionsListener(ILogger<ComponentInteractionsListener> logger, DiscordClient discordClient, IMongoDatabaseProvider<PluginManifest> database)
 	{
 		_configCollection = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 		_logger = logger;

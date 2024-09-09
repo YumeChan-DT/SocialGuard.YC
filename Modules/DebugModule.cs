@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
-using YumeChan.PluginBase.Tools.Data;
+using YumeChan.PluginBase.Database.MongoDB;
 
 
 
@@ -20,7 +20,7 @@ namespace SocialGuard.YC.Modules
 			private readonly ILogger<DebugModule> logger;
 			private readonly ApiAuthService _apiAuthService;
 
-			public DebugModule(ILogger<DebugModule> logger, ApiAuthService apiAuthService, IDatabaseProvider<PluginManifest> database)
+			public DebugModule(ILogger<DebugModule> logger, ApiAuthService apiAuthService, IMongoDatabaseProvider<PluginManifest> database)
 			{
 				guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 				this.logger = logger;
