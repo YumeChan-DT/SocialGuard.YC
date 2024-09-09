@@ -24,7 +24,7 @@ jobs:
         dotnet-version: 8.0
 
     - name: Setup NBGV
-      uses: dotnet/nbgv@0.4
+      uses: dotnet/nbgv@v0.4
 
     - name: Restore dependencies
       run: dotnet restore
