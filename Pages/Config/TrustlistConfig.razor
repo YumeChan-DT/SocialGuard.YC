@@ -43,20 +43,14 @@
 								<label class="form-label">Join Log channel</label>
 
 								<select @bind="@_config.JoinLogChannel" class="form-select">
-									<option selected value="0">(None)</option>
-									@foreach (KeyValuePair<ulong, DiscordChannel> channel in _guild.Channels
-										.Where(c => c.Value.Type is ChannelType.Text)
-										.OrderBy(c => c.Value.Name))
-									{
-										<option selected="@(channel.Key == _config.JoinLogChannel)" value="@channel.Key.ToString()">@channel.Value.Name</option>
-									}
+									@RazorUtilities.GuildTextChannelsSelectList((_config.JoinLogChannel, _guild!))
 								</select>
 							</div>
 
 							<div class="form-check my-3">
 								<InputCheckbox @bind-Value=_config.SuppressJoinlogCleanRecords class="form-check-input" />
 								<label class="form-check-label">
-									Suppress<span class="text-success">Clean (N+0)</span> records from Join Log
+									Suppress <span class="text-success">Clean (N+0)</span> records from Join Log
 								</label>
 							</div>
 
@@ -71,13 +65,7 @@
 								</div>
 
 								<select @bind="@_config.LeaveLogChannel" class="form-select" disabled="@(!_config.LeaveLogEnabled)">
-									<option selected value="0">(None)</option>
-									@foreach (KeyValuePair<ulong, DiscordChannel> channel in _guild.Channels
-										.Where(c => c.Value.Type is ChannelType.Text)
-										.OrderBy(c => c.Value.Name))
-									{
-										<option selected="@(channel.Key == _config.LeaveLogChannel)" value="@channel.Key.ToString()">@channel.Value.Name</option>
-									}
+									@RazorUtilities.GuildTextChannelsSelectList((_config.LeaveLogChannel, _guild!))
 								</select>
 							</div>
 						</div>
@@ -90,19 +78,13 @@
 							<div class="my-3">
 								<label class="form-label">Ban Log channel</label>
 								<select @bind="@_config.BanLogChannel" class="form-select">
-									<option selected value="0">(None)</option>
-									@foreach (KeyValuePair<ulong, DiscordChannel> channel in _guild.Channels
-										.Where(c => c.Value.Type is ChannelType.Text)
-										.OrderBy(c => c.Value.Name))
-									{
-										<option selected="@(channel.Key == _config.BanLogChannel)" value="@channel.Key.ToString()">@channel.Value.Name</option>
-									}
+									@RazorUtilities.GuildTextChannelsSelectList((_config.BanLogChannel, _guild!))
 								</select>
 							</div>
 
 							<div class="form-check my-3">
 								<InputCheckbox @bind-Value="_config.AutoBanBlacklisted" class="form-check-input" />
-								<label class="form-check-label">Automatically ban all<span class="text-danger">Dangerous (N+3)</span> users</label>
+								<label class="form-check-label">Automatically ban all <span class="text-danger">Dangerous (N+3)</span> users</label>
 							</div>
 						</div>
 					</div>
