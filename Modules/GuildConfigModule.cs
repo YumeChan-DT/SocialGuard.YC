@@ -2,7 +2,6 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using YumeChan.PluginBase.Tools.Data;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
 using SocialGuard.YC.Services.Security;
@@ -10,6 +9,7 @@ using System.ComponentModel.DataAnnotations;
 using MongoDB.Driver;
 using SocialGuard.Common.Data.Models.Authentication;
 using System.Text;
+using YumeChan.PluginBase.Database.MongoDB;
 
 namespace SocialGuard.YC.Modules
 {
@@ -22,7 +22,7 @@ namespace SocialGuard.YC.Modules
 			private readonly ApiAuthService _apiAuth;
 			private readonly IEncryptionService _encryption;
 
-			public GuildConfigModule(IDatabaseProvider<PluginManifest> database, ApiAuthService apiAuth, IEncryptionService encryption)
+			public GuildConfigModule(IMongoDatabaseProvider<PluginManifest> database, ApiAuthService apiAuth, IEncryptionService encryption)
 			{
 				guildConfig = database.GetMongoDatabase().GetCollection<GuildConfig>(nameof(GuildConfig));
 				this._apiAuth = apiAuth;

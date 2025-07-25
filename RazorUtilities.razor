@@ -10,21 +10,42 @@
 			<div class="lds-dual-ring"></div>
 		</div>
 	};
-	
-	public static RenderFragment<DiscordGuild> GuildCornerInfo { get; } = guild => __builder =>
+    
+    public static RenderFragment<DiscordGuild> GuildCornerInfo { get; } = static guild => __builder =>
     {
 	    <div class="d-flex flex-row" id="guild-display">
-		    @if (@guild.GetIconUrl(ImageFormat.WebP, 128) is { } iconUrl)
+		    @if (@guild.GetIconUrl(ImageFormat.WebP, 64) is { } iconUrl)
 		    {
 			    <div id="guild-img">
-				    <img alt="Server Icon" class="rounded-circle" src="@iconUrl" />
+				    <img alt="Server Icon" class="rounded-circle mx-3" src="@iconUrl" />
 			    </div>
 		    }
 
 		    <div>
-			    <div id="guild-name"><h5>@guild.Name</h5></div>
+			    <div id="guild-name">
+				    <h5>@guild.Name</h5>
+			    </div>
+			    
 			    <div class="small text-muted" id="guild-id">ID: @guild.Id.ToString()</div>
 		    </div>
 	    </div>
+    };
+
+    public static RenderFragment<(ulong selected, DiscordGuild guild)> GuildTextChannelsSelectList { get; } = static value => __builder =>
+    {
+	    <option selected value="0">(None)</option>
+
+	    @foreach (IGrouping<DiscordChannel?, DiscordChannel> category in value.guild.GetChannelsByCategory()
+		              .OrderBy(static c => c.Key?.Position ?? int.MinValue))
+	    {
+		    <optgroup label=@(category.Key?.Name ?? "(Uncategorized)")>
+			    @foreach (DiscordChannel channel in category
+				              .Where(static c => c.Type is ChannelType.Text)
+				              .OrderBy(static c => c.Position))
+			    {
+				    <option selected="@(channel.Id == value.selected)" value="@channel.Id.ToString()">@channel.Name</option>
+			    }
+		    </optgroup>
+	    }
     };
 }

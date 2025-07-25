@@ -10,6 +10,10 @@
 @inject ApiAuthService AuthService
 @inject EmitterClient EmitterClient;
 
+@if (!_loaded)
+{
+	@RazorUtilities.LoadingSpinner
+}
 
 @if (_emitterModel is not null)
 {
@@ -98,13 +102,20 @@
 		</NotAuthorized>
 	</AuthorizeView>
 }
-else if (_guild is not null) 
+else if (_guild is not null && !_guildAuthenticated) 
 {
-	@RazorUtilities.LoadingSpinner
+	<div class="m-3">
+		<h3 class="text-warning mb-4">
+			<i class="bi-exclamation-triangle-fill me-3"></i>
+			<span>This server is not authenticated on the API.</span>
+		</h3>
+	
+		<a href="auth/@_guild!.Id.ToString()" class="btn btn-primary btn-lg">Go to Login</a>
+	</div>
 }
 else
 {
-	<h3 class="text-warning">No Server found for ID<span class="font-monospace">@GuildIdStr</span>.</h3>
+	<h3 class="text-warning">No Server found for ID <span class="font-monospace">@GuildIdStr</span>.</h3>
 }
 
 
@@ -116,11 +127,13 @@ else
 	private Emitter? _currentEmitter;
 	private GuildConfig? _config;
 
+	private bool _loaded;
 	private bool _guildAuthenticated;
 	private bool _displaySaveAlert;
 
 	protected override async Task OnInitializedAsync()
 	{
+		_loaded = false;
 		await base.OnInitializedAsync();
 
 		if (ulong.TryParse(GuildIdStr, out ulong guildId) && BotClient.Guilds.TryGetValue(guildId, out DiscordGuild? guild))
@@ -135,6 +148,8 @@ else
 				_emitterModel = _currentEmitter?.Adapt<EmitterEditModel>() ?? new() { Login = _config.ApiLogin!.Username, Snowflake = guildId };
 			}
 		}
+
+		_loaded = true;
 	}
 
 	private async Task OnValidSubmitAsync()

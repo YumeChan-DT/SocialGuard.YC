@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Text.RegularExpressions;
 using SocialGuard.YC.Data.Models;
 using DSharpPlus.SlashCommands;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components.Authorization;
 using SocialGuard.Common.Services;
 
@@ -160,4 +161,17 @@ public static class Utilities
 		&& ulong.TryParse(claim.Value, out ulong snowflake)
 			? snowflake
 			: null;
+	
+	/// <summary>
+	/// Gets all channels in the specified guild, grouped by category.
+	/// </summary>
+	/// <remarks>
+	///	This method is used to structure a channel list for channel selectors.
+	/// </remarks>
+	/// <returns></returns>
+	[Pure]
+	public static IEnumerable<IGrouping<DiscordChannel?, DiscordChannel>> GetChannelsByCategory(this DiscordGuild guild) =>
+		from channel in guild.Channels.Values
+		group channel by channel.Parent into category
+		select category;
 }

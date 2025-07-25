@@ -10,8 +10,8 @@ using SocialGuard.Common.Hubs;
 using SocialGuard.Common.Services;
 using SocialGuard.YC.Data.Models;
 using SocialGuard.YC.Data.Models.Config;
+using YumeChan.PluginBase.Database.MongoDB;
 using YumeChan.PluginBase.Tools;
-using YumeChan.PluginBase.Tools.Data;
 
 namespace SocialGuard.YC.Services;
 
@@ -24,7 +24,7 @@ public class BroadcastsListener : IHostedService
 	private readonly IMongoCollection<GuildConfig> _guildConfig;
 
 	public BroadcastsListener(ILogger<BroadcastsListener> logger, IInterfaceConfigProvider<IApiConfig> configProvider,
-		DiscordClient discordClient, IDatabaseProvider<PluginManifest> database, TrustlistClient trustlistUserApiService)
+		DiscordClient discordClient, IMongoDatabaseProvider<PluginManifest> database, TrustlistClient trustlistUserApiService)
 	{
 		IApiConfig config = configProvider.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig();
 		_logger = logger;

@@ -1,7 +1,6 @@
 ﻿using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Data.Models;
 using SocialGuard.YC.Services;
-using YumeChan.PluginBase.Tools.Data;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus;
@@ -10,6 +9,7 @@ using MongoDB.Driver;
 using Microsoft.Extensions.Hosting;
 using SocialGuard.Common.Services;
 using SocialGuard.Common.Data.Models;
+using YumeChan.PluginBase.Database.MongoDB;
 
 namespace SocialGuard.YC;
 
@@ -20,7 +20,7 @@ public class GuildTrafficHandler : IHostedService
 	private readonly TrustlistClient _client;
 	private readonly IMongoCollection<GuildConfig> _configRepository;
 
-	public GuildTrafficHandler(ILogger<GuildTrafficHandler> logger, DiscordClient discordClient, TrustlistClient client, IDatabaseProvider<PluginManifest> database)
+	public GuildTrafficHandler(ILogger<GuildTrafficHandler> logger, DiscordClient discordClient, TrustlistClient client, IMongoDatabaseProvider<PluginManifest> database)
 	{
 		_logger = logger;
 		_discordClient = discordClient;

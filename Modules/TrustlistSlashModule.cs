@@ -4,10 +4,10 @@ using DSharpPlus.SlashCommands;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services;
 using MongoDB.Driver;
-using YumeChan.PluginBase.Tools.Data;
 using DSharpPlus.SlashCommands.Attributes;
 using SocialGuard.Common.Services;
 using SocialGuard.YC.Data.Models;
+using YumeChan.PluginBase.Database.MongoDB;
 
 namespace SocialGuard.YC.Modules
 {
@@ -20,7 +20,7 @@ namespace SocialGuard.YC.Modules
 			private readonly ApiAuthService _apiAuth;
 			private readonly IMongoCollection<GuildConfig> guildConfig;
 
-			public TrustlistSlashModule(TrustlistClient trustlist, ApiAuthService apiAuth, IDatabaseProvider<PluginManifest> databaseProvider)
+			public TrustlistSlashModule(TrustlistClient trustlist, ApiAuthService apiAuth, IMongoDatabaseProvider<PluginManifest> databaseProvider)
 			{
 				_trustlist = trustlist;
 				this._apiAuth = apiAuth;

@@ -4,10 +4,8 @@ using SocialGuard.Common.Data.Models.Authentication;
 using SocialGuard.Common.Services;
 using SocialGuard.YC.Data.Models.Config;
 using SocialGuard.YC.Services.Security;
+using YumeChan.PluginBase.Database.MongoDB;
 using YumeChan.PluginBase.Tools;
-using YumeChan.PluginBase.Tools.Data;
-
-
 
 namespace SocialGuard.YC.Services;
 
@@ -16,8 +14,12 @@ public class ApiAuthService : AuthenticationClient
 	private readonly IEncryptionService _encryption;
 	private readonly IMongoCollection<GuildConfig> _guildConfig;
 
-	public ApiAuthService(HttpClient httpClient, IInterfaceConfigProvider<IApiConfig> configProvider, IEncryptionService encryption, IDatabaseProvider<PluginManifest> database) 
-		: base(httpClient)
+	public ApiAuthService(
+		HttpClient httpClient, 
+		IInterfaceConfigProvider<IApiConfig> configProvider, 
+		IEncryptionService encryption, 
+		IMongoDatabaseProvider<PluginManifest> database
+	) : base(httpClient)
 	{
 		httpClient.BaseAddress = new(configProvider.InitConfig(PluginManifest.ApiConfigFileName).PopulateApiConfig().ApiHost);
 		_encryption = encryption;
@@ -28,7 +30,11 @@ public class ApiAuthService : AuthenticationClient
 	public async Task<TokenResult?> GetOrUpdateAuthTokenAsync(ulong guildId)
 	{
 		GuildConfig config = await _guildConfig.FindOrCreateConfigAsync(guildId);
-		LoginModel login = config.ApiLogin ?? throw new ApplicationException("Guild must first set API login (username/password).");
+
+		if (config.ApiLogin is not { } login)
+		{
+			return null;
+		}
 
 		if (config.Token is { } token && token.IsValid())
 		{
