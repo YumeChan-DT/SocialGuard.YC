@@ -30,7 +30,11 @@ public class ApiAuthService : AuthenticationClient
 	public async Task<TokenResult?> GetOrUpdateAuthTokenAsync(ulong guildId)
 	{
 		GuildConfig config = await _guildConfig.FindOrCreateConfigAsync(guildId);
-		LoginModel login = config.ApiLogin ?? throw new ApplicationException("Guild must first set API login (username/password).");
+
+		if (config.ApiLogin is not { } login)
+		{
+			return null;
+		}
 
 		if (config.Token is { } token && token.IsValid())
 		{
